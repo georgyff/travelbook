@@ -1,0 +1,55 @@
+/* Travel Log — "Gazetteer" design tokens
+   Load the font once:
+   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+*/
+:root {
+  /* Surfaces */
+  --paper: #F4EFE4;            /* page background */
+  --paper-raised: #FBF8F1;     /* place detail panel */
+  --paper-selected: #E9E1D0;   /* selected country / place row */
+
+  /* Ink */
+  --ink: #1E1B16;              /* body text, strong rules, borders of controls */
+  --ink-2: #3E382F;            /* secondary text (country descriptor line) */
+  --muted: #5E574B;            /* labels, counts, italic notes (6.7:1 on paper) */
+
+  /* Rules */
+  --rule-strong: #1E1B16;      /* section rules, header double rule */
+  --rule: #CFC6B4;             /* vertical column dividers, column-rule */
+  --rule-soft: #E2DACB;        /* row separators in place lists */
+  --leader: #9C9382;           /* dotted leaders between name and count */
+
+  /* Completion status — the user's rule: white = completed, yellow = partial, red = not completed.
+     On paper these are FILLS (markers, chips), never text colours. */
+  --status-completed: #FFFFFF;
+  --status-completed-border: #1E1B16;
+  --status-partial: #E8B931;
+  --status-partial-border: #1E1B16;
+  --status-partial-on: #1E1B16;      /* text on a partial chip */
+  --status-not: #A8322A;
+  --status-not-border: #A8322A;
+  --status-not-on: #FFFFFF;          /* text on a not-completed chip (6.9:1) */
+
+  /* Type */
+  --font: "Newsreader", Georgia, "Times New Roman", serif;
+  --text-body: 17px;           /* line-height 1.5 */
+  --text-small: 15px;
+  --text-caption: 14px;
+  --text-place: 18px;          /* place rows */
+  --text-section: 28px;        /* "Places", "History" — weight 600 */
+  --text-nav-title: 26px;      /* "Index of countries" — weight 600 */
+  --text-place-title: 36px;    /* place detail heading — weight 500 */
+  --text-wordmark: 34px;       /* "The Travel Log" — 600, small-caps */
+  --text-world: 76px;          /* world count — 500 */
+  --text-country: 84px;        /* country name — 500, letter-spacing -0.015em, line-height 1 */
+  --text-history: 19px;        /* country history paragraph, line-height 1.6, max 66ch */
+
+  /* Spacing & shape */
+  --page-max: 1360px;
+  --page-pad: 32px;
+  --col-gap: 28px;             /* padding either side of the vertical column rules */
+  --article-pad-left: 36px;
+  --marker: 11px;              /* status square size */
+  --radius: 0;                 /* everything is square-cornered */
+  --hit: 44px;                 /* minimum touch target */
+}

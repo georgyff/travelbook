@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Logbook — Gazetteer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4EFE4}
+a{color:#1E1B16}a:hover{color:#23406B}
+button,input{font:inherit;color:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4EFE4; color: #1E1B16; font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.5">
+
+<header style="max-width: 1360px; margin: 0 auto; padding: 28px 32px 0">
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; padding-bottom: 14px; border-bottom: 1px solid #1E1B16">
+    <div style="font-size: 34px; font-weight: 600; letter-spacing: -0.01em; font-variant: small-caps">The Travel Log</div>
+    <nav aria-label="Main" style="display: flex; gap: 24px; font-size: 17px">
+      <a href="StyleGazetteer.dc.html" aria-current="page" style="padding: 10px 0; text-decoration: none; font-weight: 600; border-bottom: 2px solid #1E1B16">Logbook</a>
+      <a href="TripsTable.dc.html" style="padding: 10px 0; text-decoration: none; color: #5E574B">Trips</a>
+      <button type="button" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; cursor: pointer; color: #5E574B; font-style: italic">Edit</button>
+    </nav>
+  </div>
+  <div style="height: 3px; border-bottom: 1px solid #1E1B16"></div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 28px 32px 96px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0">
+
+  <aside aria-label="Progress" style="flex: 1 1 250px; min-width: 0; padding: 0 28px 32px 0; display: flex; flex-direction: column; gap: 28px">
+    <div style="text-align: center; padding: 18px 0 20px; border-top: 1px solid #1E1B16; border-bottom: 1px solid #1E1B16">
+      <div style="font-variant: small-caps; letter-spacing: 0.08em; color: #5E574B">the world</div>
+      <div style="font-size: 76px; font-weight: 500; line-height: 1; margin: 4px 0">{{world.done}}</div>
+      <div style="font-style: italic; color: #5E574B">of {{world.total}} countries · {{world.pct}}%</div>
+    </div>
+
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1E1B16; padding-bottom: 4px">
+        <span style="font-variant: small-caps; letter-spacing: 0.08em; font-weight: 600">regions</span>
+        <button type="button" style="min-height: 36px; padding: 0 2px; border: 0; background: transparent; cursor: pointer; font-style: italic; color: #5E574B; font-size: 15px">add</button>
+      </div>
+      <sc-for list="{{regions}}" as="r" hint-placeholder-count="6">
+        <div style="display: flex; align-items: baseline; gap: 6px; padding: 7px 0">
+          <span>{{r.name}}</span>
+          <span aria-hidden="true" style="flex: 1; border-bottom: 1px dotted #9C9382; transform: translateY(-5px)"></span>
+          <span style="font-variant-numeric: oldstyle-nums">{{r.done}} <span style="color: #5E574B; font-style: italic">of</span> {{r.total}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div>
+      <div style="border-bottom: 1px solid #1E1B16; padding-bottom: 4px; font-variant: small-caps; letter-spacing: 0.08em; font-weight: 600">places by type</div>
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 6px; padding: 7px 0">
+          <span style="flex: 1">{{t.label}}</span>
+          <span style="padding: 0 6px; background: #FFFFFF; border: 1px solid #1E1B16; font-size: 15px">{{t.done}}</span>
+          <span style="color: #5E574B">+</span>
+          <span style="padding: 0 6px; background: #E8B931; border: 1px solid #1E1B16; font-size: 15px">{{t.partial}}</span>
+          <span style="color: #5E574B">=</span>
+          <span style="font-weight: 600; min-width: 30px; text-align: right">{{t.sum}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </aside>
+
+  <nav aria-label="Countries" style="flex: 1 1 260px; min-width: 0; padding: 0 28px 32px; border-left: 1px solid #CFC6B4">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1E1B16; padding-bottom: 4px">
+      <span style="font-size: 26px; font-weight: 600">Index of countries</span>
+      <button type="button" style="min-height: 36px; padding: 0 2px; border: 0; background: transparent; cursor: pointer; font-style: italic; color: #5E574B; font-size: 15px">add</button>
+    </div>
+    <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 10px 0 8px; border-bottom: 1px solid #9C9382; color: #5E574B">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Filter countries</span>
+      <input type="search" placeholder="Look up a country…" style="border: 0; background: transparent; outline: none; width: 100%; min-width: 0; font-style: italic">
+    </label>
+    <sc-for list="{{continents}}" as="ct" hint-placeholder-count="4">
+      <div style="margin-top: 10px">
+        <button type="button" aria-expanded="{{ct.open}}" style="width: 100%; min-height: 40px; display: flex; align-items: baseline; gap: 8px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0">
+          <span style="flex: 1; font-variant: small-caps; letter-spacing: 0.08em; font-weight: 600; font-size: 18px">{{ct.lower}}</span>
+          <span style="font-style: italic; color: #5E574B; font-size: 15px">{{ct.count}} {{ct.word}}</span>
+        </button>
+        <sc-if value="{{ct.open}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <sc-for list="{{ct.countries}}" as="c" hint-placeholder-count="4">
+              <button type="button" aria-current="{{c.current}}" style="width: 100%; min-height: 42px; display: flex; align-items: center; gap: 10px; border: 0; background: {{c.bg}}; cursor: pointer; text-align: left; padding: 0 8px">
+                <span aria-hidden="true" style="width: 11px; height: 11px; flex: 0 0 auto; background: {{c.mark}}; border: 1px solid {{c.markBorder}}"></span>
+                <span style="font-weight: {{c.weight}}">{{c.name}}</span>
+                <span aria-hidden="true" style="flex: 1; border-bottom: 1px dotted #9C9382; transform: translateY(5px)"></span>
+                <span style="font-size: 15px; color: #5E574B; font-variant-numeric: oldstyle-nums">{{c.n}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </nav>
+
+  <article style="flex: 999 1 560px; min-width: 0; padding: 0 0 0 36px; border-left: 1px solid #CFC6B4; display: flex; flex-direction: column; gap: 32px">
+    <header style="text-align: center; padding-bottom: 22px; border-bottom: 1px solid #1E1B16">
+      <div style="font-variant: small-caps; letter-spacing: 0.12em; color: #5E574B">asia</div>
+      <h1 style="margin: 2px 0 4px; font-size: 84px; font-weight: 500; line-height: 1; letter-spacing: -0.015em">Cambodia</h1>
+      <p style="margin: 0; font-style: italic; font-size: 20px; color: #3E382F">Capital, Phnom Penh. Seven places recorded.</p>
+      <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 18px; flex-wrap: wrap; justify-content: center; font-size: 15px">
+        <span style="display: inline-flex; align-items: center; gap: 8px; padding: 2px 12px; background: #E8B931; border: 1px solid #1E1B16; font-weight: 600">Partially completed</span>
+        <span>3 completed · 2 partial · 2 not yet</span>
+      </div>
+    </header>
+
+    <section aria-labelledby="g-places">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px">
+        <h2 id="g-places" style="margin: 0; font-size: 28px; font-weight: 600">Places</h2>
+        <button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #1E1B16; background: transparent; cursor: pointer; font-size: 15px">Add a place</button>
+      </div>
+      <div style="column-width: 240px; column-gap: 40px; column-rule: 1px solid #CFC6B4">
+        <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+          <div style="break-inside: avoid; margin-bottom: 18px">
+            <h3 style="margin: 0 0 4px; font-style: italic; font-weight: 400; font-size: 18px; color: #5E574B">{{g.label}}</h3>
+            <sc-for list="{{g.places}}" as="p" hint-placeholder-count="2">
+              <button type="button" aria-pressed="{{p.selected}}" style="width: 100%; min-height: 44px; display: flex; align-items: center; gap: 10px; border: 0; border-bottom: 1px solid #E2DACB; background: {{p.bg}}; cursor: pointer; text-align: left; padding: 0 6px; font-size: 18px; font-weight: {{p.weight}}">
+                <span aria-hidden="true" style="width: 11px; height: 11px; flex: 0 0 auto; background: {{p.mark}}; border: 1px solid {{p.markBorder}}"></span>{{p.name}}
+              </button>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 4px; font-size: 14px; font-style: italic; color: #5E574B">
+        <span style="display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 11px; height: 11px; background: #FFFFFF; border: 1px solid #1E1B16"></span>completed</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 11px; height: 11px; background: #E8B931; border: 1px solid #1E1B16"></span>partially completed</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 11px; height: 11px; background: #A8322A; border: 1px solid #A8322A"></span>not completed</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="g-place" style="background: #FBF8F1; border: 1px solid #1E1B16; padding: 26px 30px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px">
+        <h2 id="g-place" style="margin: 0; font-size: 36px; font-weight: 500">Angkor Wat <span style="font-size: 18px; font-style: italic; font-weight: 400; color: #5E574B">monument, completed</span></h2>
+        <button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #1E1B16; background: transparent; cursor: pointer; font-size: 15px">Edit place</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px">
+        <div>
+          <h3 style="margin: 0 0 6px; font-variant: small-caps; letter-spacing: 0.08em; font-size: 17px; font-weight: 600">short history</h3>
+          <p style="margin: 0">[Short history of Angkor Wat — your own text goes here.]</p>
+        </div>
+        <div>
+          <h3 style="margin: 0 0 6px; font-variant: small-caps; letter-spacing: 0.08em; font-size: 17px; font-weight: 600">interesting facts</h3>
+          <ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px">
+            <li>[Interesting fact]</li>
+            <li>[Interesting fact]</li>
+            <li>[Interesting fact]</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="g-history">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #1E1B16; padding-bottom: 6px; margin-bottom: 14px">
+        <h2 id="g-history" style="margin: 0; font-size: 28px; font-weight: 600">History</h2>
+        <button type="button" style="min-height: 36px; padding: 0 2px; border: 0; background: transparent; cursor: pointer; font-style: italic; color: #5E574B; font-size: 15px">edit</button>
+      </div>
+      <p style="margin: 0; max-width: 66ch; font-size: 19px; line-height: 1.6">[History of Cambodia — one free-text section per country. It sits below the places so the country page reads from top to bottom.]</p>
+    </section>
+  </article>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1550}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const MARK = {
+      done: { mark: '#FFFFFF', markBorder: '#1E1B16' },
+      partial: { mark: '#E8B931', markBorder: '#1E1B16' },
+      todo: { mark: '#A8322A', markBorder: '#A8322A' }
+    };
+    const regions = [['Europe', 29, 52], ['Asia', 4, 46], ['Africa', 1, 54], ['North America', 2, 23], ['South America', 0, 12], ['Oceania', 0, 10]]
+      .map(([name, done, total]) => ({ name, done, total }));
+    const wDone = regions.reduce((a, r) => a + r.done, 0);
+    const wTotal = regions.reduce((a, r) => a + r.total, 0);
+    const types = [['Cities', 101, 25], ['Villages', 14, 6], ['Nature', 38, 11], ['Monuments', 57, 9]]
+      .map(([label, done, partial]) => ({ label, done, partial, sum: done + partial }));
+    const mk = (name, s, n, cur) => ({ name, n, ...MARK[s], current: cur ? 'page' : 'false', bg: cur ? '#E9E1D0' : 'transparent', weight: cur ? 600 : 400 });
+    const continents = [
+      { name: 'Asia', open: true, countries: [mk('Cambodia', 'partial', 7, true), mk('Thailand', 'done', 3), mk('Vietnam', 'partial', 3), mk('Japan', 'todo', 2)] },
+      { name: 'Europe', open: true, countries: [mk('Latvia', 'done', 2), mk('Lithuania', 'partial', 3), mk('Estonia', 'done', 2), mk('Spain', 'partial', 3)] },
+      { name: 'Africa', open: false, countries: [mk('Morocco', 'partial', 3)] },
+      { name: 'North America', open: false, countries: [mk('Mexico', 'done', 2), mk('Canada', 'partial', 2)] }
+    ].map(ct => ({ ...ct, lower: ct.name.toLowerCase(), count: ct.countries.length, word: ct.countries.length === 1 ? 'country' : 'countries' }));
+    const pl = (name, s, sel) => ({ name, ...MARK[s], selected: !!sel, bg: sel ? '#E9E1D0' : 'transparent', weight: sel ? 600 : 400 });
+    const groups = [
+      { label: 'Capital', places: [pl('Phnom Penh', 'done')] },
+      { label: 'Cities', places: [pl('Siem Reap', 'done'), pl('Kampot', 'partial')] },
+      { label: 'Monuments', places: [pl('Angkor Wat', 'done', true)] },
+      { label: 'Nature', places: [pl('Koh Rong', 'todo'), pl('Bokor Mountain', 'todo')] },
+      { label: 'Villages', places: [pl('Kep', 'partial')] }
+    ];
+    return { regions, world: { done: wDone, total: wTotal, pct: Math.round(wDone / wTotal * 100) }, types, continents, groups };
+  }
+}
+</script>
+</body>
+</html>

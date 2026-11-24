@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travel Log — Logbook (Gazetteer reference)</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+/* Travel Log — "Gazetteer" design tokens
+   Load the font once:
+   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+*/
+:root {
+  /* Surfaces */
+  --paper: #F4EFE4;            /* page background */
+  --paper-raised: #FBF8F1;     /* place detail panel */
+  --paper-selected: #E9E1D0;   /* selected country / place row */
+
+  /* Ink */
+  --ink: #1E1B16;              /* body text, strong rules, borders of controls */
+  --ink-2: #3E382F;            /* secondary text (country descriptor line) */
+  --muted: #5E574B;            /* labels, counts, italic notes (6.7:1 on paper) */
+
+  /* Rules */
+  --rule-strong: #1E1B16;      /* section rules, header double rule */
+  --rule: #CFC6B4;             /* vertical column dividers, column-rule */
+  --rule-soft: #E2DACB;        /* row separators in place lists */
+  --leader: #9C9382;           /* dotted leaders between name and count */
+
+  /* Completion status — the user's rule: white = completed, yellow = partial, red = not completed.
+     On paper these are FILLS (markers, chips), never text colours. */
+  --status-completed: #FFFFFF;
+  --status-completed-border: #1E1B16;
+  --status-partial: #E8B931;
+  --status-partial-border: #1E1B16;
+  --status-partial-on: #1E1B16;      /* text on a partial chip */
+  --status-not: #A8322A;
+  --status-not-border: #A8322A;
+  --status-not-on: #FFFFFF;          /* text on a not-completed chip (6.9:1) */
+
+  /* Type */
+  --font: "Newsreader", Georgia, "Times New Roman", serif;
+  --text-body: 17px;           /* line-height 1.5 */
+  --text-small: 15px;
+  --text-caption: 14px;
+  --text-place: 18px;          /* place rows */
+  --text-section: 28px;        /* "Places", "History" — weight 600 */
+  --text-nav-title: 26px;      /* "Index of countries" — weight 600 */
+  --text-place-title: 36px;    /* place detail heading — weight 500 */
+  --text-wordmark: 34px;       /* "The Travel Log" — 600, small-caps */
+  --text-world: 76px;          /* world count — 500 */
+  --text-country: 84px;        /* country name — 500, letter-spacing -0.015em, line-height 1 */
+  --text-history: 19px;        /* country history paragraph, line-height 1.6, max 66ch */
+
+  /* Spacing & shape */
+  --page-max: 1360px;
+  --page-pad: 32px;
+  --col-gap: 28px;             /* padding either side of the vertical column rules */
+  --article-pad-left: 36px;
+  --marker: 11px;              /* status square size */
+  --radius: 0;                 /* everything is square-cornered */
+  --hit: 44px;                 /* minimum touch target */
+}
+
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); font-size: var(--text-body); line-height: 1.5; }
+button, input { font: inherit; color: inherit; }
+a { color: var(--ink); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sc { font-variant: small-caps; letter-spacing: 0.08em; }
+.muted { color: var(--muted); }
+.italic { font-style: italic; }
+.btn-text { min-height: 36px; padding: 0 2px; border: 0; background: transparent; cursor: pointer; font-style: italic; color: var(--muted); font-size: var(--text-small); }
+.btn-outline { min-height: 40px; padding: 0 14px; border: 1px solid var(--ink); background: transparent; cursor: pointer; font-size: var(--text-small); }
+.leader { flex: 1; border-bottom: 1px dotted var(--leader); transform: translateY(-5px); }
+.marker { width: var(--marker); height: var(--marker); flex: 0 0 auto; border: 1px solid; display: inline-block; }
+.marker[data-status="completed"] { background: var(--status-completed); border-color: var(--status-completed-border); }
+.marker[data-status="partial"] { background: var(--status-partial); border-color: var(--status-partial-border); }
+.marker[data-status="not_completed"] { background: var(--status-not); border-color: var(--status-not-border); }
+.chip { padding: 0 6px; border: 1px solid var(--ink); font-size: var(--text-small); }
+.chip--completed { background: var(--status-completed); }
+.chip--partial { background: var(--status-partial); color: var(--status-partial-on); }
+.chip--not { background: var(--status-not); border-color: var(--status-not-border); color: var(--status-not-on); }
+
+/* Masthead */
+.masthead { max-width: var(--page-max); margin: 0 auto; padding: 28px var(--page-pad) 0; }
+.masthead__row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; padding-bottom: 14px; border-bottom: 1px solid var(--rule-strong); }
+.masthead__double { height: 3px; border-bottom: 1px solid var(--rule-strong); }
+.wordmark { font-size: var(--text-wordmark); font-weight: 600; letter-spacing: -0.01em; font-variant: small-caps; }
+.mainnav { display: flex; gap: 24px; }
+.mainnav a { padding: 10px 0; text-decoration: none; color: var(--muted); }
+.mainnav a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom: 2px solid var(--ink); }
+
+/* Three columns */
+.layout { max-width: var(--page-max); margin: 0 auto; padding: 28px var(--page-pad) 96px; display: flex; flex-wrap: wrap; align-items: flex-start; }
+.col-progress { flex: 1 1 250px; min-width: 0; padding: 0 var(--col-gap) 32px 0; display: flex; flex-direction: column; gap: 28px; }
+.col-index { flex: 1 1 260px; min-width: 0; padding: 0 var(--col-gap) 32px; border-left: 1px solid var(--rule); }
+.col-country { flex: 999 1 560px; min-width: 0; padding-left: var(--article-pad-left); border-left: 1px solid var(--rule); display: flex; flex-direction: column; gap: 32px; }
+@media (max-width: 900px) {
+  .col-progress, .col-index { padding-right: 0; }
+  .col-index, .col-country { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 20px; }
+}
+
+.world { text-align: center; padding: 18px 0 20px; border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); }
+.world__n { font-size: var(--text-world); font-weight: 500; line-height: 1; margin: 4px 0; }
+.block-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule-strong); padding-bottom: 4px; font-weight: 600; }
+.row { display: flex; align-items: baseline; gap: 6px; padding: 7px 0; }
+.row--center { align-items: center; }
+.oldstyle { font-variant-numeric: oldstyle-nums; }
+
+.index-title { font-size: var(--text-nav-title); font-weight: 600; }
+.search { display: flex; align-items: center; gap: 8px; min-height: var(--hit); margin: 10px 0 8px; border-bottom: 1px solid var(--leader); color: var(--muted); }
+.search input { border: 0; background: transparent; outline: none; width: 100%; min-width: 0; font-style: italic; }
+.continent { margin-top: 10px; }
+.continent__toggle { width: 100%; min-height: 40px; display: flex; align-items: baseline; gap: 8px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0; }
+.continent__name { flex: 1; font-size: 18px; font-weight: 600; }
+.country-btn { width: 100%; min-height: 42px; display: flex; align-items: center; gap: 10px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0 8px; }
+.country-btn[aria-current="page"] { background: var(--paper-selected); font-weight: 600; }
+.country-btn .leader { transform: translateY(5px); }
+
+.country-head { text-align: center; padding-bottom: 22px; border-bottom: 1px solid var(--rule-strong); }
+.country-head h1 { margin: 2px 0 4px; font-size: var(--text-country); font-weight: 500; line-height: 1; letter-spacing: -0.015em; }
+.country-head__desc { margin: 0; font-style: italic; font-size: 20px; color: var(--ink-2); }
+.country-head__meta { margin-top: 14px; display: inline-flex; align-items: center; gap: 18px; flex-wrap: wrap; justify-content: center; font-size: var(--text-small); }
+.status-chip { padding: 2px 12px; border: 1px solid var(--ink); font-weight: 600; }
+
+.section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.section-head h2 { margin: 0; font-size: var(--text-section); font-weight: 600; }
+.place-columns { column-width: 240px; column-gap: 40px; column-rule: 1px solid var(--rule); }
+.place-group { break-inside: avoid; margin-bottom: 18px; }
+.place-group h3 { margin: 0 0 4px; font-style: italic; font-weight: 400; font-size: 18px; color: var(--muted); }
+.place-btn { width: 100%; min-height: var(--hit); display: flex; align-items: center; gap: 10px; border: 0; border-bottom: 1px solid var(--rule-soft); background: transparent; cursor: pointer; text-align: left; padding: 0 6px; font-size: var(--text-place); }
+.place-btn[aria-pressed="true"] { background: var(--paper-selected); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 4px; font-size: var(--text-caption); font-style: italic; color: var(--muted); }
+.legend span { display: flex; align-items: center; gap: 6px; }
+
+.place-detail { background: var(--paper-raised); border: 1px solid var(--ink); padding: 26px 30px; }
+.place-detail h2 { margin: 0; font-size: var(--text-place-title); font-weight: 500; }
+.place-detail h2 small { font-size: 18px; font-style: italic; font-weight: 400; color: var(--muted); }
+.place-detail__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; margin-top: 14px; }
+.place-detail h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+.empty { color: var(--muted); font-style: italic; }
+
+.history-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule-strong); padding-bottom: 6px; margin-bottom: 14px; }
+.history-head h2 { margin: 0; font-size: var(--text-section); font-weight: 600; }
+.history { margin: 0; max-width: 66ch; font-size: var(--text-history); line-height: 1.6; white-space: pre-line; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead__row">
+    <div class="wordmark">The Travel Log</div>
+    <nav class="mainnav" aria-label="Main">
+      <a href="#" aria-current="page">Logbook</a>
+      <a href="#">Trips</a>
+      <button type="button" class="btn-text" style="min-height: 44px">Edit</button>
+    </nav>
+  </div>
+  <div class="masthead__double"></div>
+</header>
+
+<main class="layout">
+  <aside class="col-progress" aria-label="Progress" id="progress"></aside>
+  <nav class="col-index" aria-label="Countries">
+    <div class="block-head"><span class="index-title">Index of countries</span><button type="button" class="btn-text">add</button></div>
+    <label class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+      <span class="sr-only">Filter countries</span>
+      <input type="search" id="filter" placeholder="Look up a country…">
+    </label>
+    <div id="index"></div>
+  </nav>
+  <article class="col-country" id="country"></article>
+</main>
+
+<script>
+const DATA = {
+  "schemaVersion": 1,
+  "placeTypes": [
+    "City",
+    "Village",
+    "Nature",
+    "Monument"
+  ],
+  "continents": [
+    {
+      "id": "asia",
+      "name": "Asia",
+      "order": 1
+    },
+    {
+      "id": "europe",
+      "name": "Europe",
+      "order": 2
+    },
+    {
+      "id": "africa",
+      "name": "Africa",
+      "order": 3
+    },
+    {
+      "id": "north-america",
+      "name": "North America",
+      "order": 4
+    }
+  ],
+  "regions": [
+    {
+      "id": "baltics",
+      "name": "Baltics",
+      "order": 1,
+      "countries": [
+        "Latvia",
+        "Lithuania",
+        "Estonia"
+      ]
+    },
+    {
+      "id": "se-asia",
+      "name": "Southeast Asia",
+      "order": 2,
+      "countries": [
+        "Cambodia",
+        "Thailand",
+        "Vietnam",
+        "Laos",
+        "Myanmar",
+        "Malaysia",
+        "Singapore",
+        "Indonesia",
+        "Philippines",
+        "Brunei",
+        "Timor-Leste"
+      ]
+    },
+    {
+      "id": "iberia",
+      "name": "Iberia",
+      "order": 3,
+      "countries": [
+        "Spain",
+        "Portugal",
+        "Andorra"
+      ]
+    },
+    {
+      "id": "n-america",
+      "name": "North America",
+      "order": 4,
+      "countries": [
+        "Mexico",
+        "Canada",
+        "United States"
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "id": "cambodia",
+      "name": "Cambodia",
+      "continentId": "asia",
+      "order": 1,
+      "status": "partial",
+      "history": "[History of Cambodia — your own text.]"
+    },
+    {
+      "id": "thailand",
+      "name": "Thailand",
+      "continentId": "asia",
+      "order": 2,
+      "status": "completed",
+      "history": ""
+    },
+    {
+      "id": "vietnam",
+      "name": "Vietnam",
+      "continentId": "asia",
+      "order": 3,
+      "status": "partial",
+      "history": ""
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "continentId": "asia",
+      "order": 4,
+      "status": "not_completed",
+      "history": ""
+    },
+    {
+      "id": "latvia",
+      "name": "Latvia",
+      "continentId": "europe",
+      "order": 1,
+      "status": "completed",
+      "history": ""
+    },
+    {
+      "id": "lithuania",
+      "name": "Lithuania",
+      "continentId": "europe",
+      "order": 2,
+      "status": "partial",
+      "history": ""
+    },
+    {
+      "id": "estonia",
+      "name": "Estonia",
+      "continentId": "europe",
+      "order": 3,
+      "status": "completed",
+      "history": ""
+    },
+    {
+      "id": "spain",
+      "name": "Spain",
+      "continentId": "europe",
+      "order": 4,
+      "status": "partial",
+      "history": ""
+    },
+    {
+      "id": "morocco",
+      "name": "Morocco",
+      "continentId": "africa",
+      "order": 1,
+      "status": "partial",
+      "history": ""
+    },
+    {
+      "id": "mexico",
+      "name": "Mexico",
+      "continentId": "north-america",
+      "order": 1,
+      "status": "completed",
+      "history": ""
+    },
+    {
+      "id": "canada",
+      "name": "Canada",
+      "continentId": "north-america",
+      "order": 2,
+      "status": "partial",
+      "history": ""
+    }
+  ],
+  "places": [
+    {
+      "id": "phnom-penh",
+      "countryId": "cambodia",
+      "name": "Phnom Penh",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "siem-reap",
+      "countryId": "cambodia",
+      "name": "Siem Reap",
+      "type": "City",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "angkor-wat",
+      "countryId": "cambodia",
+      "name": "Angkor Wat",
+      "type": "Monument",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "[Short history of Angkor Wat — your own text.]",
+      "facts": [
+        "[Interesting fact]",
+        "[Interesting fact]",
+        "[Interesting fact]"
+      ]
+    },
+    {
+      "id": "kampot",
+      "countryId": "cambodia",
+      "name": "Kampot",
+      "type": "City",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "kep",
+      "countryId": "cambodia",
+      "name": "Kep",
+      "type": "Village",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "koh-rong",
+      "countryId": "cambodia",
+      "name": "Koh Rong",
+      "type": "Nature",
+      "isCapital": false,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "bokor",
+      "countryId": "cambodia",
+      "name": "Bokor Mountain",
+      "type": "Nature",
+      "isCapital": false,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "bangkok",
+      "countryId": "thailand",
+      "name": "Bangkok",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "chiang-mai",
+      "countryId": "thailand",
+      "name": "Chiang Mai",
+      "type": "City",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "ayutthaya",
+      "countryId": "thailand",
+      "name": "Ayutthaya",
+      "type": "Monument",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "hanoi",
+      "countryId": "vietnam",
+      "name": "Hanoi",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "ha-long",
+      "countryId": "vietnam",
+      "name": "Ha Long Bay",
+      "type": "Nature",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "hoi-an",
+      "countryId": "vietnam",
+      "name": "Hoi An",
+      "type": "City",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "tokyo",
+      "countryId": "japan",
+      "name": "Tokyo",
+      "type": "City",
+      "isCapital": true,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "kyoto",
+      "countryId": "japan",
+      "name": "Kyoto",
+      "type": "City",
+      "isCapital": false,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "riga",
+      "countryId": "latvia",
+      "name": "Riga",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "sigulda",
+      "countryId": "latvia",
+      "name": "Sigulda",
+      "type": "Village",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "vilnius",
+      "countryId": "lithuania",
+      "name": "Vilnius",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "trakai",
+      "countryId": "lithuania",
+      "name": "Trakai Castle",
+      "type": "Monument",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "curonian",
+      "countryId": "lithuania",
+      "name": "Curonian Spit",
+      "type": "Nature",
+      "isCapital": false,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "tallinn",
+      "countryId": "estonia",
+      "name": "Tallinn",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "lahemaa",
+      "countryId": "estonia",
+      "name": "Lahemaa",
+      "type": "Nature",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "madrid",
+      "countryId": "spain",
+      "name": "Madrid",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "seville",
+      "countryId": "spain",
+      "name": "Seville",
+      "type": "City",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "ronda",
+      "countryId": "spain",
+      "name": "Ronda",
+      "type": "Village",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "rabat",
+      "countryId": "morocco",
+      "name": "Rabat",
+      "type": "City",
+      "isCapital": true,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "marrakesh",
+      "countryId": "morocco",
+      "name": "Marrakesh",
+      "type": "City",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "chefchaouen",
+      "countryId": "morocco",
+      "name": "Chefchaouen",
+      "type": "Village",
+      "isCapital": false,
+      "status": "partial",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "mexico-city",
+      "countryId": "mexico",
+      "name": "Mexico City",
+      "type": "City",
+      "isCapital": true,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "teotihuacan",
+      "countryId": "mexico",
+      "name": "Teotihuacan",
+      "type": "Monument",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "ottawa",
+      "countryId": "canada",
+      "name": "Ottawa",
+      "type": "City",
+      "isCapital": true,
+      "status": "not_completed",
+      "shortHistory": "",
+      "facts": []
+    },
+    {
+      "id": "banff",
+      "countryId": "canada",
+      "name": "Banff",
+      "type": "Nature",
+      "isCapital": false,
+      "status": "completed",
+      "shortHistory": "",
+      "facts": []
+    }
+  ]
+};
+
+const STATUS_LABEL = { completed: 'completed', partial: 'partially completed', not_completed: 'not completed' };
+const GROUP_ORDER = ['Capital', 'City', 'Monument', 'Nature', 'Village'];
+const GROUP_LABEL = { Capital: 'Capital', City: 'Cities', Monument: 'Monuments', Nature: 'Nature', Village: 'Villages' };
+const TYPE_LABEL = { City: 'Cities', Village: 'Villages', Nature: 'Nature', Monument: 'Monuments' };
+const NUM_WORD = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+
+const state = {
+  countryId: DATA.countries.slice().sort(byOrder)[0]?.id ?? null,
+  placeId: null,
+  open: Object.fromEntries(DATA.continents.map(c => [c.id, true])),
+  filter: ''
+};
+
+function byOrder(a, b) { return a.order - b.order; }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+const statusOf = name => DATA.countries.find(c => c.name === name)?.status ?? 'not_completed';
+
+/* ---------- Derived values (never stored) ---------- */
+function regionProgress(region) {
+  return { done: region.countries.filter(n => statusOf(n) === 'completed').length, total: region.countries.length };
+}
+function worldProgress() {
+  // World = sum of every region, as specified.
+  return DATA.regions.reduce((acc, r) => { const p = regionProgress(r); return { done: acc.done + p.done, total: acc.total + p.total }; }, { done: 0, total: 0 });
+}
+function typeSummary() {
+  return DATA.placeTypes.map(type => {
+    const ps = DATA.places.filter(p => p.type === type);
+    const done = ps.filter(p => p.status === 'completed').length;
+    const partial = ps.filter(p => p.status === 'partial').length;
+    return { type, done, partial, sum: done + partial };
+  });
+}
+
+/* ---------- Left column ---------- */
+function renderProgress() {
+  const w = worldProgress();
+  const pct = w.total ? Math.round(w.done / w.total * 100) : 0;
+  document.getElementById('progress').innerHTML = `
+    <div class="world">
+      <div class="sc muted">the world</div>
+      <div class="world__n">${w.done}</div>
+      <div class="italic muted">of ${w.total} countries · ${pct}%</div>
+    </div>
+    <div>
+      <div class="block-head"><span class="sc">regions</span><button type="button" class="btn-text">add</button></div>
+      ${DATA.regions.slice().sort(byOrder).map(r => { const p = regionProgress(r); return `
+        <div class="row"><span>${esc(r.name)}</span><span class="leader" aria-hidden="true"></span>
+        <span class="oldstyle">${p.done} <span class="muted italic">of</span> ${p.total}</span></div>`; }).join('')}
+    </div>
+    <div>
+      <div class="block-head"><span class="sc">places by type</span></div>
+      ${typeSummary().map(t => `
+        <div class="row row--center"><span style="flex:1">${TYPE_LABEL[t.type] ?? esc(t.type)}</span>
+        <span class="chip chip--completed">${t.done}</span><span class="muted">+</span>
+        <span class="chip chip--partial">${t.partial}</span><span class="muted">=</span>
+        <span style="font-weight:600;min-width:30px;text-align:right">${t.sum}</span></div>`).join('')}
+    </div>`;
+}
+
+/* ---------- Middle column ---------- */
+function renderIndex() {
+  const q = state.filter.trim().toLowerCase();
+  document.getElementById('index').innerHTML = DATA.continents.slice().sort(byOrder).map(ct => {
+    const countries = DATA.countries.filter(c => c.continentId === ct.id && (!q || c.name.toLowerCase().includes(q))).sort(byOrder);
+    if (q && !countries.length) return '';
+    const open = q ? true : state.open[ct.id];
+    return `<div class="continent">
+      <button type="button" class="continent__toggle" data-continent="${ct.id}" aria-expanded="${open}">
+        <span class="continent__name sc">${esc(ct.name.toLowerCase())}</span>
+        <span class="italic muted" style="font-size:15px">${countries.length} ${countries.length === 1 ? 'country' : 'countries'}</span>
+      </button>
+      ${open ? countries.map(c => {
+        const n = DATA.places.filter(p => p.countryId === c.id).length;
+        return `<button type="button" class="country-btn" data-country="${c.id}" ${c.id === state.countryId ? 'aria-current="page"' : ''}>
+          <span class="marker" data-status="${c.status}" aria-hidden="true"></span>
+          <span>${esc(c.name)}</span><span class="sr-only">, ${STATUS_LABEL[c.status]}</span>
+          <span class="leader" aria-hidden="true"></span>
+          <span class="oldstyle muted" style="font-size:15px">${n}</span>
+        </button>`; }).join('') : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Right column ---------- */
+function renderCountry() {
+  const el = document.getElementById('country');
+  const c = DATA.countries.find(x => x.id === state.countryId);
+  if (!c) { el.innerHTML = '<p class="empty">Add a country to begin.</p>'; return; }
+  const continent = DATA.continents.find(x => x.id === c.continentId);
+  const places = DATA.places.filter(p => p.countryId === c.id);
+  const capital = places.find(p => p.isCapital);
+  const count = s => places.filter(p => p.status === s).length;
+  const chipClass = { completed: 'chip--completed', partial: 'chip--partial', not_completed: 'chip--not' }[c.status];
+  const groups = GROUP_ORDER.map(g => ({ g, items: places.filter(p => g === 'Capital' ? p.isCapital : (p.type === g && !p.isCapital)) })).filter(x => x.items.length);
+  const place = places.find(p => p.id === state.placeId);
+  const word = NUM_WORD[places.length] ?? String(places.length);
+
+  el.innerHTML = `
+    <header class="country-head">
+      <div class="sc muted" style="letter-spacing:.12em">${esc(continent?.name.toLowerCase() ?? '')}</div>
+      <h1>${esc(c.name)}</h1>
+      <p class="country-head__desc">${capital ? `Capital, ${esc(capital.name)}. ` : ''}${word} place${places.length === 1 ? '' : 's'} recorded.</p>
+      <div class="country-head__meta">
+        <span class="status-chip ${chipClass}">${STATUS_LABEL[c.status][0].toUpperCase() + STATUS_LABEL[c.status].slice(1)}</span>
+        <span>${count('completed')} completed · ${count('partial')} partial · ${count('not_completed')} not yet</span>
+      </div>
+    </header>
+
+    <section aria-labelledby="h-places">
+      <div class="section-head"><h2 id="h-places">Places</h2><button type="button" class="btn-outline">Add a place</button></div>
+      <div class="place-columns">
+        ${groups.map(({ g, items }) => `<div class="place-group"><h3>${GROUP_LABEL[g]}</h3>
+          ${items.map(p => `<button type="button" class="place-btn" data-place="${p.id}" aria-pressed="${p.id === state.placeId}">
+            <span class="marker" data-status="${p.status}" aria-hidden="true"></span>${esc(p.name)}<span class="sr-only">, ${STATUS_LABEL[p.status]}</span>
+          </button>`).join('')}</div>`).join('')}
+      </div>
+      <div class="legend">
+        <span><span class="marker" data-status="completed"></span>completed</span>
+        <span><span class="marker" data-status="partial"></span>partially completed</span>
+        <span><span class="marker" data-status="not_completed"></span>not completed</span>
+      </div>
+    </section>
+
+    ${place ? `<section class="place-detail" aria-labelledby="h-place">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px">
+        <h2 id="h-place">${esc(place.name)} <small>${place.isCapital ? 'capital' : place.type.toLowerCase()}, ${STATUS_LABEL[place.status]}</small></h2>
+        <button type="button" class="btn-outline">Edit place</button>
+      </div>
+      <div class="place-detail__cols">
+        <div><h3 class="sc">short history</h3>${place.shortHistory ? `<p style="margin:0">${esc(place.shortHistory)}</p>` : '<p class="empty" style="margin:0">Nothing written yet.</p>'}</div>
+        <div><h3 class="sc">interesting facts</h3>${place.facts.length ? `<ol style="margin:0;padding-left:22px">${place.facts.map(f => `<li>${esc(f)}</li>`).join('')}</ol>` : '<p class="empty" style="margin:0">No facts yet.</p>'}</div>
+      </div>
+    </section>` : ''}
+
+    <section aria-labelledby="h-history">
+      <div class="history-head"><h2 id="h-history">History</h2><button type="button" class="btn-text">edit</button></div>
+      ${c.history ? `<p class="history">${esc(c.history)}</p>` : '<p class="history empty">No history written yet.</p>'}
+    </section>`;
+}
+
+function render() { renderProgress(); renderIndex(); renderCountry(); }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-continent],[data-country],[data-place]');
+  if (!t) return;
+  if (t.dataset.continent) state.open[t.dataset.continent] = !state.open[t.dataset.continent];
+  if (t.dataset.country) { state.countryId = t.dataset.country; state.placeId = null; }
+  if (t.dataset.place) state.placeId = state.placeId === t.dataset.place ? null : t.dataset.place;
+  render();
+});
+document.getElementById('filter').addEventListener('input', e => { state.filter = e.target.value; renderIndex(); });
+
+state.placeId = DATA.places.find(p => p.countryId === state.countryId && p.shortHistory)?.id ?? null;
+render();
+</script>
+</body>
+</html>
