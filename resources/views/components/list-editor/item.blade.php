@@ -2,7 +2,7 @@
 
 <li class="list-editor__item" data-list-item>
     @if ($multiline)
-        <textarea class="input" name="{{ $name }}[]" rows="2" data-list-input>{{ $value }}</textarea>
+        <textarea class="input" name="{{ $name }}[]" rows="3" data-list-input>{{ $value }}</textarea>
     @else
         <input class="input" type="text" name="{{ $name }}[]" value="{{ $value }}" autocomplete="off" data-list-input @if ($datalist) list="{{ $datalist }}" @endif>
     @endif

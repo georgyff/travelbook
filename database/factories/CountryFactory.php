@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Enums\CompletionStatus;
-use App\Models\Continent;
 use App\Models\Country;
+use App\Models\Region;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +20,7 @@ class CountryFactory extends Factory
     public function definition(): array
     {
         return [
-            'continent_id' => Continent::factory(),
+            'region_id' => Region::factory(),
             'name' => fake()->unique()->country(),
             'status' => CompletionStatus::NotCompleted,
             'history' => null,

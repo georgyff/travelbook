@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['continent_id', 'name', 'status', 'history', 'position'])]
+#[Fillable(['region_id', 'name', 'status', 'history', 'position'])]
 class Country extends Model
 {
     /** @use HasFactory<CountryFactory> */
@@ -34,11 +34,11 @@ class Country extends Model
     }
 
     /**
-     * @return BelongsTo<Continent, $this>
+     * @return BelongsTo<Region, $this>
      */
-    public function continent(): BelongsTo
+    public function region(): BelongsTo
     {
-        return $this->belongsTo(Continent::class);
+        return $this->belongsTo(Region::class);
     }
 
     /**

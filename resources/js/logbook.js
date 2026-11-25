@@ -1,14 +1,14 @@
 /**
  * Logbook page behaviour. The server renders every view, and this module enhances it:
  *  - country links swap the page content in place (history-aware), place rows toggle their detail;
- *  - continents collapse, and the index filters as you type;
+ *  - region groups in the index collapse, and the index filters as you type;
  *  - the masthead Edit button switches edit mode, and every add/edit control opens its form in one <dialog>;
- *  - drag handles (pointer or arrow keys) reorder regions, continents and countries.
+ *  - drag handles (pointer or arrow keys) reorder regions and countries.
  * Every write goes to the server, which recomputes all derived numbers. Nothing derived is kept here.
  */
 
 const EDIT_MODE_KEY = 'logbook:editing';
-const COLLAPSED_KEY = 'logbook:collapsed-continents';
+const COLLAPSED_KEY = 'logbook:collapsed-regions';
 const NARROW_LAYOUT = '(max-width: 900px)';
 
 /* ---------- Small helpers ---------- */
@@ -61,7 +61,7 @@ function plural(count, singular, pluralForm) {
 
 /**
  * Fetch a logbook URL and replace <main> with its content, keeping client-side state
- * (collapsed continents, the filter text, edit mode).
+ * (collapsed region groups, the filter text, edit mode).
  */
 async function loadPage(url, { push = false, focusSelector = null } = {}) {
     let response;
@@ -117,7 +117,7 @@ window.addEventListener('popstate', () => loadPage(window.location.href));
 
 /* ---------- Country index: collapse and filter ---------- */
 
-function collapsedContinents() {
+function collapsedRegions() {
     try {
         return new Set(JSON.parse(safeStorage.get(localStorage, COLLAPSED_KEY) ?? '[]'));
     } catch {
@@ -131,11 +131,11 @@ function filterQuery() {
 
 function applyIndexState() {
     const query = filterQuery();
-    const collapsed = collapsedContinents();
+    const collapsed = collapsedRegions();
     let anyMatch = false;
 
-    document.querySelectorAll('[data-continent]').forEach((continent) => {
-        const rows = [...continent.querySelectorAll('[data-country-row]')];
+    document.querySelectorAll('[data-region-group]').forEach((group) => {
+        const rows = [...group.querySelectorAll('[data-country-row]')];
         let matches = 0;
 
         rows.forEach((row) => {
@@ -145,15 +145,15 @@ function applyIndexState() {
         });
 
         anyMatch ||= matches > 0;
-        continent.hidden = Boolean(query) && matches === 0;
+        group.hidden = Boolean(query) && matches === 0;
 
-        const count = continent.querySelector('[data-country-count]');
+        const count = group.querySelector('[data-country-count]');
         if (count) {
             count.textContent = plural(query ? matches : Number(count.dataset.total), 'country', 'countries');
         }
 
-        const isOpen = query ? true : !collapsed.has(continent.dataset.continent);
-        const toggle = continent.querySelector('[data-continent-toggle]');
+        const isOpen = query ? true : !collapsed.has(group.dataset.regionGroup);
+        const toggle = group.querySelector('[data-region-toggle]');
         toggle?.setAttribute('aria-expanded', String(isOpen));
         const list = document.getElementById(toggle?.getAttribute('aria-controls') ?? '');
         if (list) {
@@ -175,9 +175,9 @@ function restoreIndexState(filterText) {
     applyIndexState();
 }
 
-function toggleContinent(toggle) {
-    const id = toggle.closest('[data-continent]').dataset.continent;
-    const collapsed = collapsedContinents();
+function toggleRegionGroup(toggle) {
+    const id = toggle.closest('[data-region-group]').dataset.regionGroup;
+    const collapsed = collapsedRegions();
     if (collapsed.has(id)) {
         collapsed.delete(id);
     } else {
@@ -474,7 +474,11 @@ function sortOrder(list) {
     return sortItems(list).map((item) => Number(item.dataset.id));
 }
 
-async function saveOrder(list, previousOrder) {
+/**
+ * Save a list's new order. Lists marked data-sort-refresh show records that also appear elsewhere
+ * on the page (regions are in both the Regions list and the index), so the page is reloaded to match.
+ */
+async function saveOrder(list, previousOrder, movedItem) {
     const ids = sortOrder(list);
     if (ids.join() === previousOrder.join()) {
         return;
@@ -492,6 +496,14 @@ async function saveOrder(list, previousOrder) {
     } catch {
         announce('The new order could not be saved. The list has been reset.');
         await loadPage(window.location.href);
+        return;
+    }
+
+    if (list.hasAttribute('data-sort-refresh')) {
+        const handleHadFocus = document.activeElement?.closest('[data-sort-item]') === movedItem;
+        await loadPage(window.location.href, {
+            focusSelector: handleHadFocus ? `#${CSS.escape(list.id)} > [data-sort-item][data-id="${movedItem.dataset.id}"] [data-sort-handle]` : null,
+        });
     }
 }
 
@@ -543,7 +555,7 @@ function endDrag(event) {
 
     if (sortOrder(list).join() !== previousOrder.join()) {
         announcePosition(item);
-        saveOrder(list, previousOrder);
+        saveOrder(list, previousOrder, item);
     }
 }
 
@@ -581,7 +593,7 @@ document.addEventListener('keydown', (event) => {
 
     pending.timer = window.setTimeout(() => {
         pendingKeyboardSaves.delete(list);
-        saveOrder(list, pending.previousOrder);
+        saveOrder(list, pending.previousOrder, item);
     }, 600);
     pendingKeyboardSaves.set(list, pending);
 });
@@ -600,9 +612,9 @@ document.addEventListener('click', (event) => {
         return;
     }
 
-    const continentToggle = target.closest('[data-continent-toggle]');
-    if (continentToggle) {
-        toggleContinent(continentToggle);
+    const regionToggle = target.closest('[data-region-toggle]');
+    if (regionToggle) {
+        toggleRegionGroup(regionToggle);
         return;
     }
 

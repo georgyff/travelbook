@@ -1,27 +1,26 @@
 <?php
 
 use App\Enums\CompletionStatus;
-use App\Models\Continent;
 use App\Models\Country;
 use App\Models\Place;
 use App\Models\Region;
 
 describe('create and store', function () {
-    it('preselects the continent the form was opened from', function () {
-        $continent = Continent::factory()->create();
+    it('preselects the region the form was opened from', function () {
+        $region = Region::factory()->create();
 
-        $response = $this->get(route('countries.create', ['continent' => $continent->id]));
+        $response = $this->get(route('countries.create', ['region' => $region->id]));
 
-        $response->assertSee('<option value="'.$continent->id.'" selected>', false);
+        $response->assertSee('<option value="'.$region->id.'" selected>', false);
     });
 
-    it('adds a country at the end of its continent and opens it', function () {
-        $continent = Continent::factory()->create();
-        Country::factory()->for($continent)->create(['position' => 3]);
+    it('adds a country at the end of its region and opens it', function () {
+        $region = Region::factory()->create();
+        Country::factory()->for($region)->create(['position' => 3]);
 
         $response = $this->postJson(route('countries.store'), [
             'name' => ' Portugal ',
-            'continent_id' => $continent->id,
+            'region_id' => $region->id,
             'status' => 'completed',
             'history' => "Line one.\nLine two.",
         ]);
@@ -34,12 +33,12 @@ describe('create and store', function () {
             ->history->toBe("Line one.\nLine two.");
     });
 
-    it('requires a name, continent and status', function () {
+    it('requires a name, region and status', function () {
         $response = $this->postJson(route('countries.store'), []);
 
         $response->assertJsonValidationErrors([
             'name' => 'Give the country a name.',
-            'continent_id' => 'Choose a continent.',
+            'region_id' => 'Choose a region.',
             'status' => 'Choose a status.',
         ]);
     });
@@ -47,7 +46,7 @@ describe('create and store', function () {
     it('rejects an unknown status', function () {
         $response = $this->postJson(route('countries.store'), [
             'name' => 'Peru',
-            'continent_id' => Continent::factory()->create()->id,
+            'region_id' => Region::factory()->create()->id,
             'status' => 'visited',
         ]);
 
@@ -60,7 +59,7 @@ describe('create and store', function () {
 
         $response = $this->postJson(route('countries.store'), [
             'name' => 'CAMBODIA',
-            'continent_id' => $existing->continent_id,
+            'region_id' => $existing->region_id,
             'status' => 'partial',
         ]);
 
@@ -69,61 +68,35 @@ describe('create and store', function () {
 });
 
 describe('update', function () {
-    it('moves a country to the end of its new continent', function () {
-        $asia = Continent::factory()->create();
-        $europe = Continent::factory()->create();
+    it('moves a country to the end of its new region', function () {
+        $asia = Region::factory()->create();
+        $europe = Region::factory()->create();
         Country::factory()->for($europe)->create(['position' => 2]);
         $country = Country::factory()->for($asia)->create(['name' => 'Georgia', 'position' => 1]);
 
         $this->putJson(route('countries.update', $country), [
             'name' => 'Georgia',
-            'continent_id' => $europe->id,
+            'region_id' => $europe->id,
             'status' => 'not_completed',
         ])->assertOk();
 
         expect($country->fresh())
-            ->continent_id->toBe($europe->id)
+            ->region_id->toBe($europe->id)
             ->position->toBe(3);
     });
 
-    it('renames the country in every region that listed it', function () {
-        $country = Country::factory()->create(['name' => 'Burma']);
-        $region = Region::factory()->withMembers(['Thailand', 'burma'])->create();
-
-        $this->putJson(route('countries.update', $country), [
-            'name' => 'Myanmar',
-            'continent_id' => $country->continent_id,
-            'status' => 'partial',
-        ])->assertOk();
-
-        expect($region->members()->pluck('name')->all())->toBe(['Thailand', 'Myanmar']);
-    });
-
-    it('drops the old name from a region that already lists the new one', function () {
-        $country = Country::factory()->create(['name' => 'Burma']);
-        $region = Region::factory()->withMembers(['Burma', 'Myanmar'])->create();
-
-        $this->putJson(route('countries.update', $country), [
-            'name' => 'Myanmar',
-            'continent_id' => $country->continent_id,
-            'status' => 'partial',
-        ])->assertOk();
-
-        expect($region->members()->pluck('name')->all())->toBe(['Myanmar']);
-    });
 });
 
 describe('destroy', function () {
-    it('deletes the country and its places but keeps region names', function () {
-        $country = Country::factory()->create(['name' => 'Laos']);
+    it('deletes the country and its places but keeps its region', function () {
+        $country = Country::factory()->create();
         $place = Place::factory()->for($country)->create();
-        $region = Region::factory()->withMembers(['Laos'])->create();
 
         $response = $this->deleteJson(route('countries.destroy', $country));
 
         $response->assertOk()->assertJson(['redirect' => route('logbook')]);
         $this->assertModelMissing($country);
         $this->assertModelMissing($place);
-        expect($region->members()->pluck('name')->all())->toBe(['Laos']);
+        $this->assertModelExists($country->region);
     });
 });

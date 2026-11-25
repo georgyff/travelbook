@@ -2,10 +2,10 @@
     <div class="block-head">
         <h2 class="index-title" id="h-index">Index of countries</h2>
         <span class="text-buttons" data-edit-only>
-            @if ($continents->isNotEmpty())
+            @if ($regions->isNotEmpty())
                 <button type="button" class="btn-text" data-open-form="{{ route('countries.create') }}">add country</button>
             @endif
-            <button type="button" class="btn-text" data-open-form="{{ route('continents.create') }}">add continent</button>
+            <button type="button" class="btn-text" data-open-form="{{ route('regions.create') }}">add region</button>
         </span>
     </div>
 
@@ -17,25 +17,26 @@
 
     <p class="empty index-empty" data-filter-empty hidden>No country matches.</p>
 
-    @if ($continents->isEmpty())
-        <p class="empty index-empty">No continents yet. Choose Edit, then “add continent”.</p>
+    @if ($regions->isEmpty())
+        <p class="empty index-empty">No regions yet. Choose Edit, then “add region”.</p>
     @endif
 
-    <ul class="continent-list" data-sort-list data-sort-url="{{ route('continent-order.update') }}">
-        @foreach ($continents as $continent)
-            @php($countryTotal = $continent->countries->count())
-            <li class="continent" data-sort-item data-id="{{ $continent->id }}" data-name="{{ $continent->name }}" data-continent="{{ $continent->id }}">
-                <div class="continent__head">
-                    <x-sort-handle :label="'Reorder continent '.$continent->name" />
-                    <button type="button" class="continent__toggle" aria-expanded="true" aria-controls="continent-{{ $continent->id }}-countries" data-continent-toggle>
-                        <span class="continent__name sc">{{ Str::lower($continent->name) }}</span>
-                        <span class="italic muted continent__count" data-country-count data-total="{{ $countryTotal }}">{{ $countryTotal }} {{ Str::plural('country', $countryTotal) }}</span>
+    {{-- Same records as the Regions list, so reordering here also reorders there. --}}
+    <ul class="region-group-list" id="index-region-groups" data-sort-list data-sort-refresh data-sort-url="{{ route('region-order.update') }}">
+        @foreach ($regions as $region)
+            @php($countryTotal = $region->countries->count())
+            <li class="region-group" data-sort-item data-id="{{ $region->id }}" data-name="{{ $region->name }}" data-region-group="{{ $region->id }}">
+                <div class="region-group__head">
+                    <x-sort-handle :label="'Reorder region '.$region->name" />
+                    <button type="button" class="region-group__toggle" aria-expanded="true" aria-controls="region-{{ $region->id }}-countries" data-region-toggle>
+                        <span class="region-group__name sc">{{ Str::lower($region->name) }}</span>
+                        <span class="italic muted region-group__count" data-country-count data-total="{{ $countryTotal }}">{{ $countryTotal }} {{ Str::plural('country', $countryTotal) }}</span>
                     </button>
-                    <button type="button" class="btn-text" data-edit-only data-open-form="{{ route('continents.edit', $continent) }}">edit<span class="sr-only"> continent {{ $continent->name }}</span></button>
+                    <button type="button" class="btn-text" data-edit-only data-open-form="{{ route('regions.edit', $region) }}">edit<span class="sr-only"> region {{ $region->name }}</span></button>
                 </div>
 
-                <ul class="country-list" id="continent-{{ $continent->id }}-countries" data-sort-list data-sort-url="{{ route('continents.country-order.update', $continent) }}">
-                    @foreach ($continent->countries as $listedCountry)
+                <ul class="country-list" id="region-{{ $region->id }}-countries" data-sort-list data-sort-url="{{ route('regions.country-order.update', $region) }}">
+                    @foreach ($region->countries as $listedCountry)
                         <li class="country-row" data-sort-item data-id="{{ $listedCountry->id }}" data-name="{{ $listedCountry->name }}" data-country-row>
                             <x-sort-handle :label="'Reorder '.$listedCountry->name" />
                             <a class="country-btn" href="{{ route('countries.show', $listedCountry) }}" data-country-link @if ($country?->is($listedCountry)) aria-current="page" @endif>
@@ -50,7 +51,7 @@
                         <li class="empty index-empty">No countries yet.</li>
                     @endif
                     <li data-edit-only>
-                        <button type="button" class="btn-text" data-open-form="{{ route('countries.create', ['continent' => $continent->id]) }}">add a country to {{ $continent->name }}</button>
+                        <button type="button" class="btn-text" data-open-form="{{ route('countries.create', ['region' => $region->id]) }}">add a country to {{ $region->name }}</button>
                     </li>
                 </ul>
             </li>

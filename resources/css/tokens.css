@@ -55,6 +55,6 @@
 
   /* Added for the production page: sizes the reference used inline, and the edit dialog. */
   --text-lead: 20px;           /* country descriptor line */
-  --text-subhead: 18px;        /* continent names, place group headings */
+  --text-subhead: 18px;        /* region names in the index, place group headings */
   --backdrop: rgb(30 27 22 / 0.45); /* --ink at 45%, behind edit dialogs */
 }

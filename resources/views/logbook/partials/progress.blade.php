@@ -17,7 +17,8 @@
             <p class="empty">No regions yet.</p>
         @endif
 
-        <ul class="region-list" data-sort-list data-sort-url="{{ route('region-order.update') }}">
+        {{-- Same records as the country index groups, so reordering here also reorders there. --}}
+        <ul class="region-list" id="progress-regions" data-sort-list data-sort-refresh data-sort-url="{{ route('region-order.update') }}">
             @foreach ($countryProgress['regions'] as $tally)
                 <li class="row" data-sort-item data-id="{{ $tally['region']->id }}" data-name="{{ $tally['region']->name }}">
                     <x-sort-handle :label="'Reorder region '.$tally['region']->name" />

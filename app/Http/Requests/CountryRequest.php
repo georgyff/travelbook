@@ -32,7 +32,7 @@ class CountryRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100', $this->nameIsUnique(...)],
-            'continent_id' => ['required', 'integer', Rule::exists('continents', 'id')],
+            'region_id' => ['required', 'integer', Rule::exists('regions', 'id')],
             'status' => ['required', Rule::enum(CompletionStatus::class)],
             'history' => ['nullable', 'string', 'max:20000'],
         ];
@@ -45,13 +45,13 @@ class CountryRequest extends FormRequest
     {
         return [
             'name.required' => 'Give the country a name.',
-            'continent_id.required' => 'Choose a continent.',
+            'region_id.required' => 'Choose a region.',
             'status.required' => 'Choose a status.',
         ];
     }
 
     /**
-     * Region members match countries by name ignoring case, so names must be unique ignoring case.
+     * Country names must be unique ignoring case, so "Laos" and "laos" can't both exist.
      */
     private function nameIsUnique(string $attribute, mixed $value, Closure $fail): void
     {

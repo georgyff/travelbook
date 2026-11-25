@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CompletionStatus;
-use App\Models\Continent;
 use App\Models\Country;
 use App\Models\Place;
 use App\Models\PlaceType;
@@ -22,7 +21,7 @@ class LogbookController extends Controller
     private const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
 
     /**
-     * The logbook opened on the first country in the index.
+     * The logbook opened on the first country of the first region in the index.
      */
     public function index(Request $request, LogbookProgress $progress): View
     {
@@ -39,23 +38,22 @@ class LogbookController extends Controller
 
     private function render(Request $request, LogbookProgress $progress, ?Country $country): View
     {
-        $continents = Continent::query()
+        $regions = Region::query()
             ->orderBy('position')
             ->orderBy('id')
             ->with(['countries' => fn ($query) => $query->withCount('places')])
             ->get();
 
-        $regions = Region::query()->orderBy('position')->orderBy('id')->with('members')->get();
         $placeTypes = PlaceType::query()->orderBy('position')->orderBy('id')->get();
 
-        $country ??= $continents->flatMap->countries->first();
-        $country?->load(['continent', 'places.placeType']);
+        $country ??= $regions->flatMap->countries->first();
+        $country?->load(['region', 'places.placeType']);
 
         $places = $country?->places ?? new EloquentCollection;
         $selectedPlace = $places->firstWhere('id', $request->integer('place'));
 
         return view('logbook.show', [
-            'continents' => $continents,
+            'regions' => $regions,
             'countryProgress' => $progress->countryProgress($regions),
             'placesByType' => $progress->placesByType($placeTypes),
             'country' => $country,

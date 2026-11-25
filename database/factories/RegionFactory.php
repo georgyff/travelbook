@@ -22,18 +22,4 @@ class RegionFactory extends Factory
             'position' => 0,
         ];
     }
-
-    /**
-     * Give the region these member country names, in order.
-     *
-     * @param  list<string>  $names
-     */
-    public function withMembers(array $names): static
-    {
-        return $this->afterCreating(function (Region $region) use ($names): void {
-            foreach (array_values($names) as $position => $name) {
-                $region->members()->create(['name' => $name, 'position' => $position]);
-            }
-        });
-    }
 }

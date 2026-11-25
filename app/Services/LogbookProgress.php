@@ -13,16 +13,14 @@ use Illuminate\Support\Str;
 /**
  * Computes the logbook's derived numbers. None of these are ever stored.
  *
- * - A region's "done" counts its countries whose logbook status is completed. Names that aren't
- *   in the logbook count toward the total as not completed.
- * - The world figure counts each distinct country named in any region once, even if it appears
- *   in several regions.
+ * - A region's "done" counts its countries whose status is completed; its total counts all its countries.
+ * - The world figure sums every region. Each country belongs to exactly one region, so none is counted twice.
  * - Places by type: completed + partial = sum. Capitals are counted under their own type (City).
  */
 class LogbookProgress
 {
     /**
-     * @param  Collection<int, Region>  $regions  Regions with their `members` loaded.
+     * @param  Collection<int, Region>  $regions  Regions with their `countries` loaded.
      * @return array{
      *     world: array{done: int, total: int, percent: int},
      *     regions: list<array{region: Region, done: int, total: int}>,
@@ -30,30 +28,14 @@ class LogbookProgress
      */
     public function countryProgress(Collection $regions): array
     {
-        $completedNames = Country::query()
-            ->where('status', CompletionStatus::Completed)
-            ->pluck('name')
-            ->map(fn (string $name): string => self::normalizeName($name))
-            ->flip();
+        $regionTallies = $regions->map(fn (Region $region): array => [
+            'region' => $region,
+            'done' => $region->countries->filter(fn (Country $country): bool => $country->status === CompletionStatus::Completed)->count(),
+            'total' => $region->countries->count(),
+        ])->values()->all();
 
-        $isCompleted = fn (string $name): bool => $completedNames->has(self::normalizeName($name));
-
-        $regionTallies = $regions->map(function (Region $region) use ($isCompleted): array {
-            $names = $region->members->pluck('name');
-
-            return [
-                'region' => $region,
-                'done' => $names->filter($isCompleted)->count(),
-                'total' => $names->count(),
-            ];
-        })->values()->all();
-
-        $worldNames = $regions
-            ->flatMap(fn (Region $region): Collection => $region->members->pluck('name'))
-            ->unique(fn (string $name): string => self::normalizeName($name));
-
-        $worldDone = $worldNames->filter($isCompleted)->count();
-        $worldTotal = $worldNames->count();
+        $worldDone = array_sum(array_column($regionTallies, 'done'));
+        $worldTotal = array_sum(array_column($regionTallies, 'total'));
 
         return [
             'world' => [
@@ -93,7 +75,7 @@ class LogbookProgress
     }
 
     /**
-     * Region members are matched to logbook countries by name, ignoring case and outer spaces.
+     * Country names are compared ignoring case and outer spaces.
      */
     public static function normalizeName(string $name): string
     {

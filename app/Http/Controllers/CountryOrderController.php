@@ -3,19 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ReorderRequest;
-use App\Models\Continent;
 use App\Models\Country;
+use App\Models\Region;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The drag-and-drop order of the countries within one continent.
+ * The drag-and-drop order of the countries within one region.
  */
 class CountryOrderController extends Controller
 {
-    public function update(ReorderRequest $request, Continent $continent): Response
+    public function update(ReorderRequest $request, Region $region): Response
     {
-        $ids = $request->orderedIdsMatching($continent->countries()->pluck('id'));
+        $ids = $request->orderedIdsMatching($region->countries()->pluck('id'));
 
         DB::transaction(function () use ($ids): void {
             foreach ($ids as $index => $id) {

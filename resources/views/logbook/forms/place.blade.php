@@ -34,8 +34,8 @@
 
     <x-status-field :selected="$place->status" id-prefix="place-status" />
 
-    <x-field label="Short history" for="place-history" name="short_history" hint="Line breaks are kept.">
-        <textarea class="input" id="place-history" name="short_history" rows="5" aria-describedby="place-history-hint">{{ $place->short_history }}</textarea>
+    <x-field label="Short history" for="place-history" name="short_history" hint="Line breaks are kept. Write **bold** or *italic* to format words.">
+        <textarea class="input input--long" id="place-history" name="short_history" rows="10" aria-describedby="place-history-hint">{{ $place->short_history }}</textarea>
     </x-field>
 
     <x-list-editor
@@ -43,6 +43,7 @@
         legend="Interesting facts"
         item-label="Fact"
         add-label="Add a fact"
+        hint="Write **bold** or *italic* to format words."
         :items="$place->facts ?? []"
         :multiline="true"
         :reorderable="true"

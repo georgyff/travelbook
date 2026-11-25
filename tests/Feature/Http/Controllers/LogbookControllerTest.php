@@ -1,14 +1,13 @@
 <?php
 
-use App\Models\Continent;
 use App\Models\Country;
 use App\Models\Place;
 use App\Models\PlaceType;
 use App\Models\Region;
 
-it('opens on the first country of the first continent in index order', function () {
-    $later = Continent::factory()->create(['name' => 'Europe', 'position' => 2]);
-    $first = Continent::factory()->create(['name' => 'Asia', 'position' => 1]);
+it('opens on the first country of the first region in index order', function () {
+    $later = Region::factory()->create(['name' => 'Europe', 'position' => 2]);
+    $first = Region::factory()->create(['name' => 'Asia', 'position' => 1]);
     Country::factory()->for($later)->create(['name' => 'Latvia', 'position' => 1]);
     Country::factory()->for($first)->create(['name' => 'Japan', 'position' => 2]);
     Country::factory()->for($first)->create(['name' => 'Cambodia', 'position' => 1]);
@@ -60,9 +59,10 @@ it('opens the place detail named in the query string', function () {
 
 it('shows region, world and place-type totals', function () {
     $city = PlaceType::factory()->create(['name' => 'City', 'plural_name' => 'Cities']);
-    $latvia = Country::factory()->completed()->create(['name' => 'Latvia']);
-    Country::factory()->partial()->create(['name' => 'Lithuania']);
-    Region::factory()->withMembers(['Latvia', 'Lithuania', 'Estonia'])->create(['name' => 'Baltics']);
+    $baltics = Region::factory()->create(['name' => 'Baltics']);
+    $latvia = Country::factory()->for($baltics)->completed()->create(['name' => 'Latvia']);
+    Country::factory()->for($baltics)->partial()->create(['name' => 'Lithuania']);
+    Country::factory()->for($baltics)->notCompleted()->create(['name' => 'Estonia']);
     Place::factory()->for($latvia)->for($city)->completed()->count(2)->create();
     Place::factory()->for($latvia)->for($city)->partial()->create();
 
@@ -73,10 +73,29 @@ it('shows region, world and place-type totals', function () {
     $response->assertSeeInOrder(['Cities', '2<span class="sr-only"> completed</span>', '1<span class="sr-only"> partially completed</span>', 'total </span>3'], false);
 });
 
+it('shows each region both in the Regions list and as a group in the index', function () {
+    $region = Region::factory()->create(['name' => 'Southeast Asia']);
+
+    $response = $this->get(route('logbook'));
+
+    $response->assertSeeInOrder([
+        'id="progress-regions"', 'data-id="'.$region->id.'" data-name="Southeast Asia"', '0 <span class="muted italic">of</span> 0',
+        'id="index-region-groups"', 'data-region-group="'.$region->id.'"', 'southeast asia', '0 countries',
+    ], false);
+});
+
+it('labels the country page with its region', function () {
+    $country = Country::factory()->for(Region::factory()->create(['name' => 'Baltics']))->create();
+
+    $response = $this->get(route('countries.show', $country));
+
+    $response->assertSee('<div class="sc muted country-head__region">baltics</div>', false);
+});
+
 it('prompts the owner to add content when the logbook is empty', function () {
     $response = $this->get(route('logbook'));
 
-    $response->assertSee('Add a continent, then a country, to begin.');
+    $response->assertSee('Add a region, then a country, to begin.');
 });
 
 it('escapes owner-written text', function () {
@@ -86,6 +105,41 @@ it('escapes owner-written text', function () {
 
     $response->assertDontSee('<script>alert(1)</script>', false);
     $response->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
+});
+
+it('formats bold and italic text in a place history and its facts', function () {
+    $place = Place::factory()->create([
+        'short_history' => "Built in the **12th century**.\nRestored *twice*.",
+        'facts' => ['The **largest** temple', 'Seen from *space*'],
+    ]);
+
+    $response = $this->get(route('countries.show', [$place->country_id, 'place' => $place->id]));
+
+    $response->assertSee("<p>Built in the <strong>12th century</strong>.\nRestored <em>twice</em>.</p>", false);
+    $response->assertSee('<li>The <strong>largest</strong> temple</li>', false);
+    $response->assertSee('<li>Seen from <em>space</em></li>', false);
+});
+
+it('formats bold and italic text in the country history', function () {
+    $country = Country::factory()->create(['history' => "The **Khmer Empire** rose here.\n\nSee *Angkor*."]);
+
+    $response = $this->get(route('countries.show', $country));
+
+    $response->assertSee("<p class=\"history\">The <strong>Khmer Empire</strong> rose here.\n\nSee <em>Angkor</em>.</p>", false);
+});
+
+it('escapes HTML and drops unsafe links in formatted place text', function () {
+    $place = Place::factory()->create([
+        'short_history' => '<img src=x onerror=alert(1)> [click](javascript:alert(1))',
+        'facts' => ['<script>alert(1)</script>'],
+    ]);
+
+    $response = $this->get(route('countries.show', [$place->country_id, 'place' => $place->id]));
+
+    $response->assertDontSee('<img src=x', false);
+    $response->assertDontSee('href="javascript:', false);
+    $response->assertDontSee('<script>alert(1)</script>', false);
+    $response->assertSee('&lt;img src=x onerror=alert(1)&gt;', false);
 });
 
 it('returns 404 for a country that does not exist', function () {

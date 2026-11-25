@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A user-defined list of country names. Names may refer to countries not yet in the logbook.
+ * A group of countries. It is both a group in the country index and a row in the Regions progress list.
  */
 #[Fillable(['name', 'position'])]
 class Region extends Model
@@ -18,10 +18,12 @@ class Region extends Model
     use HasFactory;
 
     /**
-     * @return HasMany<RegionCountry, $this>
+     * Countries in the owner's drag-and-drop order.
+     *
+     * @return HasMany<Country, $this>
      */
-    public function members(): HasMany
+    public function countries(): HasMany
     {
-        return $this->hasMany(RegionCountry::class)->orderBy('position')->orderBy('id');
+        return $this->hasMany(Country::class)->orderBy('position')->orderBy('id');
     }
 }

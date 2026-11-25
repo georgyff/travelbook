@@ -1,12 +1,12 @@
 <article class="col-country" @if ($country) aria-labelledby="country-name" @else aria-label="Country" @endif>
     @if (! $country)
         <p class="empty country-empty">
-            {{ $continents->isEmpty() ? 'Add a continent, then a country, to begin.' : 'Add a country to begin.' }}
+            {{ $regions->isEmpty() ? 'Add a region, then a country, to begin.' : 'Add a country to begin.' }}
             Choose Edit at the top of the page.
         </p>
     @else
         <header class="country-head">
-            <div class="sc muted country-head__continent">{{ Str::lower($country->continent->name) }}</div>
+            <div class="sc muted country-head__region">{{ Str::lower($country->region->name) }}</div>
             <h1 id="country-name" tabindex="-1">{{ $country->name }}</h1>
             <p class="country-head__desc">{{ $descriptor }}</p>
             <div class="country-head__meta">
@@ -57,7 +57,7 @@
                     <div>
                         <h3 class="sc">short history</h3>
                         @if (filled($place->short_history))
-                            <p>{{ $place->short_history }}</p>
+                            <p>@inlineMarkdown($place->short_history)</p>
                         @else
                             <p class="empty">Nothing written yet.</p>
                         @endif
@@ -67,7 +67,7 @@
                         @if (! empty($place->facts))
                             <ol>
                                 @foreach ($place->facts as $fact)
-                                    <li>{{ $fact }}</li>
+                                    <li>@inlineMarkdown($fact)</li>
                                 @endforeach
                             </ol>
                         @else
@@ -84,7 +84,7 @@
                 <button type="button" class="btn-text" data-edit-only data-open-form="{{ route('countries.history.edit', $country) }}">edit<span class="sr-only"> history</span></button>
             </div>
             @if (filled($country->history))
-                <p class="history">{{ $country->history }}</p>
+                <p class="history">@inlineMarkdown($country->history)</p>
             @else
                 <p class="history empty">No history written yet.</p>
             @endif

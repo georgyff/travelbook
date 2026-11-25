@@ -8,7 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The order of the regions in the progress column.
+ * The order of the regions, shared by the Regions list and the country index.
  */
 class RegionOrderController extends Controller
 {

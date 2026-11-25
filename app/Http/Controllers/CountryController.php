@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\CompletionStatus;
 use App\Http\Requests\CountryRequest;
-use App\Models\Continent;
 use App\Models\Country;
-use App\Models\RegionCountry;
-use App\Services\LogbookProgress;
+use App\Models\Region;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CountryController extends Controller
@@ -20,10 +17,10 @@ class CountryController extends Controller
     {
         return view('logbook.forms.country', [
             'country' => new Country([
-                'continent_id' => $request->integer('continent') ?: null,
+                'region_id' => $request->integer('region') ?: null,
                 'status' => CompletionStatus::NotCompleted,
             ]),
-            'continents' => Continent::query()->orderBy('position')->orderBy('id')->get(),
+            'regions' => Region::query()->orderBy('position')->orderBy('id')->get(),
         ]);
     }
 
@@ -31,7 +28,7 @@ class CountryController extends Controller
     {
         $country = Country::create([
             ...$request->validated(),
-            'position' => $this->nextPosition((int) $request->validated('continent_id')),
+            'position' => $this->nextPosition((int) $request->validated('region_id')),
         ]);
 
         return $this->finishedAt(route('countries.show', $country));
@@ -41,36 +38,28 @@ class CountryController extends Controller
     {
         return view('logbook.forms.country', [
             'country' => $country->loadCount('places'),
-            'continents' => Continent::query()->orderBy('position')->orderBy('id')->get(),
+            'regions' => Region::query()->orderBy('position')->orderBy('id')->get(),
         ]);
     }
 
     /**
-     * Save the country. A country moved to another continent goes to the end of its list, and a
-     * renamed country keeps its place in every region that listed it under the old name.
+     * Save the country. A country moved to another region goes to the end of that region's list.
      */
     public function update(CountryRequest $request, Country $country): JsonResponse|RedirectResponse
     {
-        DB::transaction(function () use ($request, $country): void {
-            $previousName = $country->name;
-            $country->fill($request->validated());
+        $country->fill($request->validated());
 
-            if ($country->isDirty('continent_id')) {
-                $country->position = $this->nextPosition((int) $country->continent_id);
-            }
+        if ($country->isDirty('region_id')) {
+            $country->position = $this->nextPosition((int) $country->region_id);
+        }
 
-            $country->save();
-
-            if ($country->wasChanged('name')) {
-                $this->renameRegionMembers($previousName, $country->name);
-            }
-        });
+        $country->save();
 
         return $this->finishedAt(route('countries.show', $country));
     }
 
     /**
-     * Delete the country and its places. Regions keep the name, which then counts as not completed.
+     * Delete the country and its places.
      */
     public function destroy(Country $country): JsonResponse|RedirectResponse
     {
@@ -79,32 +68,8 @@ class CountryController extends Controller
         return $this->finishedAt(route('logbook'));
     }
 
-    private function nextPosition(int $continentId): int
+    private function nextPosition(int $regionId): int
     {
-        return (int) Country::query()->where('continent_id', $continentId)->max('position') + 1;
-    }
-
-    private function renameRegionMembers(string $previousName, string $newName): void
-    {
-        $previous = LogbookProgress::normalizeName($previousName);
-        $new = LogbookProgress::normalizeName($newName);
-
-        $members = RegionCountry::query()->get();
-        $regionsWithNewName = $members
-            ->filter(fn (RegionCountry $member): bool => LogbookProgress::normalizeName($member->name) === $new)
-            ->pluck('region_id')
-            ->flip();
-
-        $members
-            ->filter(fn (RegionCountry $member): bool => LogbookProgress::normalizeName($member->name) === $previous)
-            ->each(function (RegionCountry $member) use ($regionsWithNewName, $newName): void {
-                if ($regionsWithNewName->has($member->region_id)) {
-                    $member->delete();
-
-                    return;
-                }
-
-                $member->update(['name' => $newName]);
-            });
+        return (int) Country::query()->where('region_id', $regionId)->max('position') + 1;
     }
 }
