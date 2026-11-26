@@ -45,8 +45,11 @@
   --text-history: 19px;        /* country history paragraph, line-height 1.6, max 66ch */
 
   /* Spacing & shape */
-  --page-max: 1360px;
-  --page-pad: 32px;
+  --page-max: 1760px;         /* was 1360px: wide screens keep more room for the columns */
+  --page-pad: 24px;           /* was 32px */
+  --col-progress: 300px;      /* flex-basis of the progress column (was 250px) */
+  --col-index: 360px;         /* flex-basis of the country index (was 260px) */
+  --col-country: 520px;       /* flex-basis of the country page (was 560px) */
   --col-gap: 28px;             /* padding either side of the vertical column rules */
   --article-pad-left: 36px;
   --marker: 11px;              /* status square size */
@@ -55,6 +58,7 @@
 
   /* Added for the production page: sizes the reference used inline, and the edit dialog. */
   --text-lead: 20px;           /* country descriptor line */
+  --text-flag: 44px;          /* flag above the country name */
   --text-subhead: 18px;        /* region names in the index, place group headings */
   --backdrop: rgb(30 27 22 / 0.45); /* --ink at 45%, behind edit dialogs */
 }

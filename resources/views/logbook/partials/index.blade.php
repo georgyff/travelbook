@@ -41,6 +41,9 @@
                             <x-sort-handle :label="'Reorder '.$listedCountry->name" />
                             <a class="country-btn" href="{{ route('countries.show', $listedCountry) }}" data-country-link @if ($country?->is($listedCountry)) aria-current="page" @endif>
                                 <span class="marker" data-status="{{ $listedCountry->status->value }}" aria-hidden="true"></span>
+                                @if ($listedCountry->flag_code)
+                                    <span class="flag" aria-hidden="true">{{ $listedCountry->flagEmoji() }}</span>
+                                @endif
                                 <span>{{ $listedCountry->name }}</span><span class="sr-only">, {{ $listedCountry->status->label() }}</span>
                                 <span class="leader" aria-hidden="true"></span>
                                 <span class="oldstyle muted country-btn__count">{{ $listedCountry->places_count }}<span class="sr-only"> {{ Str::plural('place', $listedCountry->places_count) }}</span></span>

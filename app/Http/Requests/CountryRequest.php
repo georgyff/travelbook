@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\CompletionStatus;
 use App\Models\Country;
+use App\Services\CountryFlags;
 use App\Services\LogbookProgress;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -20,9 +21,18 @@ class CountryRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Trim the name, and when no flag is chosen, match one from the name.
+     */
     protected function prepareForValidation(): void
     {
-        $this->merge(['name' => trim((string) $this->input('name'))]);
+        $name = trim((string) $this->input('name'));
+        $flagCode = strtoupper(trim((string) $this->input('flag_code')));
+
+        $this->merge([
+            'name' => $name,
+            'flag_code' => $flagCode !== '' ? $flagCode : (new CountryFlags)->codeFor($name),
+        ]);
     }
 
     /**
@@ -33,6 +43,7 @@ class CountryRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100', $this->nameIsUnique(...)],
             'region_id' => ['required', 'integer', Rule::exists('regions', 'id')],
+            'flag_code' => ['nullable', 'string', Rule::in(array_keys((new CountryFlags)->options()))],
             'status' => ['required', Rule::enum(CompletionStatus::class)],
             'history' => ['nullable', 'string', 'max:20000'],
         ];
@@ -46,6 +57,7 @@ class CountryRequest extends FormRequest
         return [
             'name.required' => 'Give the country a name.',
             'region_id.required' => 'Choose a region.',
+            'flag_code.in' => 'Choose a flag from the list.',
             'status.required' => 'Choose a status.',
         ];
     }

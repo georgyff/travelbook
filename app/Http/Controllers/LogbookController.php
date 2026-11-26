@@ -57,7 +57,7 @@ class LogbookController extends Controller
             'countryProgress' => $progress->countryProgress($regions),
             'placesByType' => $progress->placesByType($placeTypes),
             'country' => $country,
-            'placeGroups' => $this->groupPlaces($places, $placeTypes),
+            'placeGroups' => $this->groupPlaces($country, $places, $placeTypes),
             'placeCounts' => [
                 'completed' => $places->where('status', CompletionStatus::Completed)->count(),
                 'partial' => $places->where('status', CompletionStatus::Partial)->count(),
@@ -69,25 +69,35 @@ class LogbookController extends Controller
     }
 
     /**
-     * Group a country's places: the capital first, then each type ordered by its plural heading
-     * (Cities, Monuments, Nature, Villages). Empty groups are left out.
+     * Group a country's places: the capitals first, then each type ordered by its plural heading
+     * (Cities, Monuments, Nature, Villages). Within a group, places keep their hand-set order,
+     * saved through the group's sort URL. Empty groups are left out.
      *
      * @param  EloquentCollection<int, Place>  $places
      * @param  EloquentCollection<int, PlaceType>  $placeTypes
-     * @return list<array{key: string, heading: string, places: Collection<int, Place>}>
+     * @return list<array{key: string, heading: string, icon: string, sortUrl: string, places: Collection<int, Place>}>
      */
-    private function groupPlaces(EloquentCollection $places, EloquentCollection $placeTypes): array
+    private function groupPlaces(?Country $country, EloquentCollection $places, EloquentCollection $placeTypes): array
     {
+        if (! $country) {
+            return [];
+        }
+
+        $capitals = $places->where('is_capital', true)->values();
         $groups = [[
             'key' => 'capital',
-            'heading' => 'Capital',
-            'places' => $places->where('is_capital', true)->values(),
+            'heading' => $capitals->count() > 1 ? 'Capitals' : 'Capital',
+            'icon' => 'capital',
+            'sortUrl' => route('countries.capital-order.update', $country),
+            'places' => $capitals,
         ]];
 
         foreach ($placeTypes->sortBy('plural_name', SORT_NATURAL | SORT_FLAG_CASE) as $placeType) {
             $groups[] = [
                 'key' => 'type-'.$placeType->id,
                 'heading' => $placeType->plural_name,
+                'icon' => $placeType->icon(),
+                'sortUrl' => route('countries.place-order.update', [$country, $placeType]),
                 'places' => $places->where('is_capital', false)->where('place_type_id', $placeType->id)->values(),
             ];
         }
@@ -96,17 +106,15 @@ class LogbookController extends Controller
     }
 
     /**
-     * The italic line under the country name, e.g. "Capital, Phnom Penh. Seven places recorded."
+     * The italic line under the country name, e.g. "Seven places recorded."
      *
      * @param  EloquentCollection<int, Place>  $places
      */
     private function describe(EloquentCollection $places): string
     {
-        $capital = $places->firstWhere('is_capital', true);
         $count = $places->count();
         $countWord = self::NUMBER_WORDS[$count] ?? (string) $count;
 
-        return ($capital ? "Capital, {$capital->name}. " : '')
-            .$countWord.' '.($count === 1 ? 'place' : 'places').' recorded.';
+        return $countWord.' '.($count === 1 ? 'place' : 'places').' recorded.';
     }
 }

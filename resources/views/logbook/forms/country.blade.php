@@ -14,14 +14,27 @@
     </x-field>
 
     <x-field label="Region" for="country-region" name="region_id">
-        <select class="input" id="country-region" name="region_id" required>
-            @unless ($country->region_id)
-                <option value="">Choose a region</option>
-            @endunless
-            @foreach ($regions as $region)
-                <option value="{{ $region->id }}" @selected((int) $country->region_id === $region->id)>{{ $region->name }}</option>
-            @endforeach
-        </select>
+        <span class="select">
+            <select class="input" id="country-region" name="region_id" required>
+                @unless ($country->region_id)
+                    <option value="">Choose a region</option>
+                @endunless
+                @foreach ($regions as $region)
+                    <option value="{{ $region->id }}" @selected((int) $country->region_id === $region->id)>{{ $region->name }}</option>
+                @endforeach
+            </select>
+        </span>
+    </x-field>
+
+    <x-field label="Flag" for="country-flag" name="flag_code" hint="“Match the country name” picks the flag from the name when you save.">
+        <span class="select">
+            <select class="input" id="country-flag" name="flag_code" aria-describedby="country-flag-hint">
+                <option value="">Match the country name</option>
+                @foreach ($flags->options() as $code => $flagName)
+                    <option value="{{ $code }}" @selected($country->flag_code === $code)>{{ $flags->emoji($code) }} {{ $flagName }}</option>
+                @endforeach
+            </select>
+        </span>
     </x-field>
 
     <x-status-field :selected="$country->status" id-prefix="country-status" />

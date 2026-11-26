@@ -12,23 +12,25 @@
     </x-field>
 
     <x-field label="Type" for="place-type" name="place_type_id">
-        <select class="input" id="place-type" name="place_type_id" required>
-            @unless ($place->place_type_id)
-                <option value="">Choose a type</option>
-            @endunless
-            @foreach ($placeTypes as $placeType)
-                <option value="{{ $placeType->id }}" @selected((int) $place->place_type_id === $placeType->id)>{{ $placeType->name }}</option>
-            @endforeach
-        </select>
+        <span class="select">
+            <select class="input" id="place-type" name="place_type_id" required>
+                @unless ($place->place_type_id)
+                    <option value="">Choose a type</option>
+                @endunless
+                @foreach ($placeTypes as $placeType)
+                    <option value="{{ $placeType->id }}" @selected((int) $place->place_type_id === $placeType->id)>{{ $placeType->name }}</option>
+                @endforeach
+            </select>
+        </span>
     </x-field>
 
     <div class="field">
         <label class="check" for="place-capital">
-            <input type="checkbox" id="place-capital" name="is_capital" value="1" @checked($place->is_capital) @if ($currentCapital) aria-describedby="place-capital-hint" @endif>
-            This is the capital
+            <input type="checkbox" id="place-capital" name="is_capital" value="1" @checked($place->is_capital) @if ($otherCapitals->isNotEmpty()) aria-describedby="place-capital-hint" @endif>
+            This is a capital
         </label>
-        @if ($currentCapital)
-            <p class="field__hint" id="place-capital-hint">A country has one capital. Ticking this replaces {{ $currentCapital->name }}.</p>
+        @if ($otherCapitals->isNotEmpty())
+            <p class="field__hint" id="place-capital-hint">{{ $country->name }} already has {{ $otherCapitals->count() === 1 ? 'a capital' : 'capitals' }}: {{ $otherCapitals->join(', ', ' and ') }}. A country can have more than one.</p>
         @endif
     </div>
 

@@ -48,9 +48,9 @@ html:not(.is-editing) [data-edit-only] { display: none !important; }
 
 /* Three columns */
 .layout { max-width: var(--page-max); margin: 0 auto; padding: 28px var(--page-pad) 96px; display: flex; flex-wrap: wrap; align-items: flex-start; }
-.col-progress { flex: 1 1 250px; min-width: 0; padding: 0 var(--col-gap) 32px 0; display: flex; flex-direction: column; gap: 28px; }
-.col-index { flex: 1 1 260px; min-width: 0; padding: 0 var(--col-gap) 32px; border-left: 1px solid var(--rule); }
-.col-country { flex: 999 1 560px; min-width: 0; padding-left: var(--article-pad-left); border-left: 1px solid var(--rule); display: flex; flex-direction: column; gap: 32px; }
+.col-progress { flex: 1 1 var(--col-progress); min-width: 0; padding: 0 var(--col-gap) 32px 0; display: flex; flex-direction: column; gap: 28px; }
+.col-index { flex: 1 1 var(--col-index); min-width: 0; padding: 0 var(--col-gap) 32px; border-left: 1px solid var(--rule); }
+.col-country { flex: 999 1 var(--col-country); min-width: 0; padding-left: var(--article-pad-left); border-left: 1px solid var(--rule); display: flex; flex-direction: column; gap: 32px; }
 @media (max-width: 900px) {
   .col-progress, .col-index { padding-right: 0; }
   .col-index, .col-country { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 20px; }
@@ -69,7 +69,8 @@ html:not(.is-editing) [data-edit-only] { display: none !important; }
 .block-head .btn-text { font-weight: 400; }
 .row { display: flex; align-items: baseline; gap: 6px; padding: 7px 0; }
 .row--center { align-items: center; }
-.row__label { flex: 1; }
+.row__label { flex: 1; display: inline-flex; align-items: center; gap: 8px; }
+.place-icon { flex: 0 0 auto; color: var(--muted); }
 .row__sum { font-weight: 600; min-width: 30px; text-align: right; }
 .region-list { margin: 0; padding: 0; list-style: none; }
 .is-editing .region-list .row { align-items: center; padding: 0; }
@@ -82,8 +83,9 @@ html:not(.is-editing) [data-edit-only] { display: none !important; }
 .region-group-list { margin: 0; padding: 0; list-style: none; }
 .region-group { margin-top: 10px; }
 .region-group__head { display: flex; align-items: center; gap: 4px; }
-.region-group__toggle { flex: 1; min-width: 0; min-height: var(--hit); display: flex; align-items: baseline; gap: 8px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0; }
-.region-group__name { flex: 1; font-size: var(--text-subhead); font-weight: 600; }
+/* Grid so the name and count share a baseline while the row sits centred against the handle and edit button. */
+.region-group__toggle { flex: 1; min-width: 0; min-height: var(--hit); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; align-content: center; column-gap: 8px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0; }
+.region-group__name { font-size: var(--text-subhead); font-weight: 600; }
 .region-group__count { font-size: var(--text-small); white-space: nowrap; }
 .country-list { margin: 0; padding: 0; list-style: none; }
 .country-row { display: flex; align-items: center; }
@@ -91,6 +93,8 @@ html:not(.is-editing) [data-edit-only] { display: none !important; }
 .country-btn:hover { background: var(--paper-selected); }
 .country-btn[aria-current="page"] { background: var(--paper-selected); font-weight: 600; }
 .country-btn .leader { transform: translateY(5px); }
+.flag { flex: 0 0 auto; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-style: normal; font-weight: 400; line-height: 1; }
+.flag--large { font-size: var(--text-flag); margin: 6px 0 2px; }
 .country-btn__count { font-size: var(--text-small); }
 .index-empty { margin: 12px 0 0; }
 
@@ -113,8 +117,10 @@ html:not(.is-editing) [data-edit-only] { display: none !important; }
 .section-head h2 { margin: 0; font-size: var(--text-section); font-weight: 600; }
 .place-columns { column-width: 240px; column-gap: 40px; column-rule: 1px solid var(--rule); }
 .place-group { break-inside: avoid; margin-bottom: 18px; }
-.place-group h3 { margin: 0 0 4px; font-style: italic; font-weight: 400; font-size: var(--text-subhead); color: var(--muted); }
-.place-btn { width: 100%; min-height: var(--hit); display: flex; align-items: center; gap: 10px; border: 0; border-bottom: 1px solid var(--rule-soft); background: transparent; cursor: pointer; text-align: left; padding: 0 6px; font-size: var(--text-place); }
+.place-group h3 { margin: 0 0 4px; display: flex; align-items: center; gap: 8px; font-style: italic; font-weight: 400; font-size: var(--text-subhead); color: var(--muted); }
+.place-list { margin: 0; padding: 0; list-style: none; }
+.place-row { display: flex; align-items: center; border-bottom: 1px solid var(--rule-soft); }
+.place-btn { flex: 1; min-width: 0; min-height: var(--hit); display: flex; align-items: center; gap: 10px; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 0 6px; font-size: var(--text-place); }
 .place-btn:hover { background: var(--paper-selected); }
 .place-btn[aria-pressed="true"] { background: var(--paper-selected); font-weight: 600; }
 .places-empty { margin: 0 0 12px; }
@@ -165,10 +171,29 @@ textarea.input--long { min-height: 12em; }
 .input[aria-invalid="true"] { border-color: var(--status-not-border); box-shadow: 0 0 0 1px var(--status-not-border); }
 .field-error { margin: 0; display: flex; align-items: baseline; gap: 8px; font-size: var(--text-small); font-style: italic; }
 .field-error::before { content: ""; flex: 0 0 auto; width: var(--marker); height: var(--marker); background: var(--status-not); border: 1px solid var(--status-not-border); transform: translateY(1px); }
-.check { display: flex; align-items: center; gap: 10px; min-height: var(--hit); cursor: pointer; }
-.check input, .status-option input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
-.status-options { display: flex; flex-wrap: wrap; gap: 4px 22px; }
-.status-option { display: flex; align-items: center; gap: 8px; min-height: var(--hit); cursor: pointer; }
+
+/* Choice controls. Checkbox: a square that fills like a status marker when ticked. */
+.check { display: flex; align-items: center; gap: 12px; min-height: var(--hit); cursor: pointer; align-self: flex-start; }
+.check input { appearance: none; flex: 0 0 auto; width: 20px; height: 20px; margin: 0; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--paper); cursor: pointer; }
+.check:hover input { background: var(--paper-selected); }
+.check input:checked { background: var(--ink); box-shadow: inset 0 0 0 4px var(--paper); }
+.check:has(input:checked) { font-weight: 600; }
+
+/* Status: a row of tiles. The chosen one gets a heavy rule, a tinted ground and bold text, so the
+   choice never rests on colour alone. The radio stays in the page for keyboards and screen readers. */
+.status-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.status-option { position: relative; display: flex; align-items: center; gap: 10px; min-height: var(--hit); padding: 0 16px 0 14px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); cursor: pointer; }
+.status-option:hover { border-color: var(--ink); }
+.status-option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.status-option:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--paper-selected); font-weight: 600; }
+.status-option:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.field:has(input[aria-invalid="true"]) .status-option { border-color: var(--status-not-border); }
+
+/* Dropdowns: the native menu, with a drawn chevron in place of the browser's arrow. */
+.select { position: relative; display: block; }
+.select select { appearance: none; padding-right: 40px; cursor: pointer; text-overflow: ellipsis; }
+.select select:hover { background: var(--paper-selected); }
+.select::after { content: ""; position: absolute; right: 16px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
 
 .list-editor__items { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .list-editor__item { display: flex; align-items: flex-start; gap: 6px; }

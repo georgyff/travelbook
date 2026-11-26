@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['country_id', 'place_type_id', 'name', 'is_capital', 'status', 'short_history', 'facts'])]
+#[Fillable(['country_id', 'place_type_id', 'name', 'is_capital', 'position', 'status', 'short_history', 'facts'])]
 class Place extends Model
 {
     /** @use HasFactory<PlaceFactory> */

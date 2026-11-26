@@ -3,7 +3,7 @@
  *  - country links swap the page content in place (history-aware), place rows toggle their detail;
  *  - region groups in the index collapse, and the index filters as you type;
  *  - the masthead Edit button switches edit mode, and every add/edit control opens its form in one <dialog>;
- *  - drag handles (pointer or arrow keys) reorder regions and countries.
+ *  - drag handles (pointer or arrow keys) reorder regions, countries and the places within each type.
  * Every write goes to the server, which recomputes all derived numbers. Nothing derived is kept here.
  */
 

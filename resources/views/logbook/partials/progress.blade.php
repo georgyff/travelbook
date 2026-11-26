@@ -24,7 +24,7 @@
                     <x-sort-handle :label="'Reorder region '.$tally['region']->name" />
                     <span>{{ $tally['region']->name }}</span>
                     <span class="leader" aria-hidden="true"></span>
-                    <span class="oldstyle">{{ $tally['done'] }} <span class="muted italic">of</span> {{ $tally['total'] }}</span>
+                    <span class="oldstyle">{{ $tally['done'] }} <span class="muted" aria-hidden="true">/</span><span class="sr-only">of</span> {{ $tally['total'] }}</span>
                     <button type="button" class="btn-text" data-edit-only data-open-form="{{ route('regions.edit', $tally['region']) }}">edit<span class="sr-only"> region {{ $tally['region']->name }}</span></button>
                 </li>
             @endforeach
@@ -35,7 +35,7 @@
         <div class="block-head"><h2 class="sc" id="h-place-types">places by type</h2></div>
         @foreach ($placesByType as $tally)
             <div class="row row--center">
-                <span class="row__label">{{ $tally['placeType']->plural_name }}</span>
+                <span class="row__label"><x-place-icon :icon="$tally['placeType']->icon()" />{{ $tally['placeType']->plural_name }}</span>
                 <span class="chip chip--completed">{{ $tally['completed'] }}<span class="sr-only"> completed</span></span>
                 <span class="muted" aria-hidden="true">+</span>
                 <span class="chip chip--partial">{{ $tally['partial'] }}<span class="sr-only"> partially completed</span></span>

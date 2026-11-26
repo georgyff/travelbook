@@ -33,6 +33,57 @@ describe('create and store', function () {
             ->history->toBe("Line one.\nLine two.");
     });
 
+    it('matches the flag from the name when none is chosen', function () {
+        $region = Region::factory()->create();
+
+        $this->postJson(route('countries.store'), [
+            'name' => 'Ivory Coast',
+            'region_id' => $region->id,
+            'status' => 'not_completed',
+            'flag_code' => '',
+        ])->assertOk();
+
+        expect(Country::query()->where('name', 'Ivory Coast')->sole()->flag_code)->toBe('CI');
+    });
+
+    it('keeps the flag the owner chose', function () {
+        $region = Region::factory()->create();
+
+        $this->postJson(route('countries.store'), [
+            'name' => 'Scotland',
+            'region_id' => $region->id,
+            'status' => 'partial',
+            'flag_code' => 'gb',
+        ])->assertOk();
+
+        expect(Country::query()->where('name', 'Scotland')->sole()->flag_code)->toBe('GB');
+    });
+
+    it('saves no flag when none is chosen and the name has no match', function () {
+        $region = Region::factory()->create();
+
+        $this->postJson(route('countries.store'), [
+            'name' => 'Atlantis',
+            'region_id' => $region->id,
+            'status' => 'not_completed',
+        ])->assertOk();
+
+        expect(Country::query()->where('name', 'Atlantis')->sole()->flag_code)->toBeNull();
+    });
+
+    it('rejects a flag code that is not in the list', function () {
+        $region = Region::factory()->create();
+
+        $response = $this->postJson(route('countries.store'), [
+            'name' => 'Atlantis',
+            'region_id' => $region->id,
+            'status' => 'not_completed',
+            'flag_code' => 'QQ',
+        ]);
+
+        $response->assertJsonValidationErrors(['flag_code' => 'Choose a flag from the list.']);
+    });
+
     it('requires a name, region and status', function () {
         $response = $this->postJson(route('countries.store'), []);
 

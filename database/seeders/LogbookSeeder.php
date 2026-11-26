@@ -6,6 +6,7 @@ use App\Models\Country;
 use App\Models\Place;
 use App\Models\PlaceType;
 use App\Models\Region;
+use App\Services\CountryFlags;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -54,23 +55,30 @@ class LogbookSeeder extends Seeder
                 ])->id;
             }
 
+            $flags = new CountryFlags;
             $countryIds = [];
             foreach ($data['countries'] as $country) {
                 $countryIds[$country['id']] = Country::create([
                     'region_id' => $regionIds[$country['regionId']],
                     'name' => $country['name'],
+                    'flag_code' => $flags->codeFor($country['name']),
                     'status' => $country['status'],
                     'history' => $country['history'] !== '' ? $country['history'] : null,
                     'position' => $country['order'],
                 ])->id;
             }
 
+            $nextPositions = [];
             foreach ($data['places'] as $place) {
+                $group = $place['countryId'].'-'.($place['isCapital'] ? 'capital' : $place['type']);
+                $nextPositions[$group] = ($nextPositions[$group] ?? 0) + 1;
+
                 Place::create([
                     'country_id' => $countryIds[$place['countryId']],
                     'place_type_id' => $placeTypeIds[$place['type']],
                     'name' => $place['name'],
                     'is_capital' => $place['isCapital'],
+                    'position' => $nextPositions[$group],
                     'status' => $place['status'],
                     'short_history' => $place['shortHistory'] !== '' ? $place['shortHistory'] : null,
                     'facts' => $place['facts'],

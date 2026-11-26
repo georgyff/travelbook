@@ -6,6 +6,7 @@ use App\Enums\CompletionStatus;
 use App\Http\Requests\CountryRequest;
 use App\Models\Country;
 use App\Models\Region;
+use App\Services\CountryFlags;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class CountryController extends Controller
                 'status' => CompletionStatus::NotCompleted,
             ]),
             'regions' => Region::query()->orderBy('position')->orderBy('id')->get(),
+            'flags' => new CountryFlags,
         ]);
     }
 
@@ -39,6 +41,7 @@ class CountryController extends Controller
         return view('logbook.forms.country', [
             'country' => $country->loadCount('places'),
             'regions' => Region::query()->orderBy('position')->orderBy('id')->get(),
+            'flags' => new CountryFlags,
         ]);
     }
 

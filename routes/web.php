@@ -5,6 +5,7 @@ use App\Http\Controllers\CountryHistoryController;
 use App\Http\Controllers\CountryOrderController;
 use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\PlaceOrderController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RegionOrderController;
 use Illuminate\Support\Facades\Route;
@@ -21,3 +22,5 @@ Route::get('countries/{country}/history/edit', [CountryHistoryController::class,
 Route::put('countries/{country}/history', [CountryHistoryController::class, 'update'])->name('countries.history.update');
 
 Route::resource('countries.places', PlaceController::class)->shallow()->except(['index', 'show']);
+Route::put('countries/{country}/place-types/{placeType}/place-order', [PlaceOrderController::class, 'update'])->name('countries.place-order.update');
+Route::put('countries/{country}/capital-order', [PlaceOrderController::class, 'updateCapitals'])->name('countries.capital-order.update');

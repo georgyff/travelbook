@@ -26,7 +26,8 @@ it('renders the selected country with its descriptor and place counts', function
 
     $response = $this->get(route('countries.show', $country));
 
-    $response->assertSee('Capital, Phnom Penh. Three places recorded.');
+    $response->assertSee('<p class="country-head__desc">Three places recorded.</p>', false);
+    $response->assertDontSee('Capital, Phnom Penh');
     $response->assertSee('1 completed · 1 partial · 1 not yet');
     $response->assertSee('Partially completed');
 });
@@ -43,7 +44,18 @@ it('groups places with the capital first, then types by plural heading', functio
 
     $response = $this->get(route('countries.show', $country));
 
-    $response->assertSeeInOrder(['>Capital</h3>', 'Phnom Penh', '>Cities</h3>', 'Kampot', '>Monuments</h3>', 'Angkor Wat', '>Villages</h3>', 'Kep'], false);
+    $response->assertSeeInOrder(['Capital</h3>', 'Phnom Penh', 'Cities</h3>', 'Kampot', 'Monuments</h3>', 'Angkor Wat', 'Villages</h3>', 'Kep'], false);
+});
+
+it('lists several capitals under one Capitals heading, in their saved order', function () {
+    $country = Country::factory()->create();
+    Place::factory()->for($country)->capital()->create(['name' => 'The Hague', 'position' => 2]);
+    Place::factory()->for($country)->capital()->create(['name' => 'Amsterdam', 'position' => 1]);
+
+    $response = $this->get(route('countries.show', $country));
+
+    $response->assertSeeInOrder(['Capitals</h3>', 'Amsterdam', 'The Hague'], false);
+    $response->assertDontSee('Capital</h3>', false);
 });
 
 it('opens the place detail named in the query string', function () {
@@ -69,8 +81,22 @@ it('shows region, world and place-type totals', function () {
     $response = $this->get(route('logbook'));
 
     $response->assertSeeInOrder(['the world', '<div class="world__n">1</div>', 'of 3 countries · 33%'], false);
-    $response->assertSeeInOrder(['Baltics', '1 <span class="muted italic">of</span> 3'], false);
+    $response->assertSeeInOrder(['Baltics', '1 <span class="muted" aria-hidden="true">/</span><span class="sr-only">of</span> 3'], false);
     $response->assertSeeInOrder(['Cities', '2<span class="sr-only"> completed</span>', '1<span class="sr-only"> partially completed</span>', 'total </span>3'], false);
+});
+
+it('shows an icon for each place type in its group heading and in places by type', function () {
+    $country = Country::factory()->create();
+    $city = PlaceType::factory()->create(['name' => 'City', 'plural_name' => 'Cities']);
+    $spa = PlaceType::factory()->create(['name' => 'Spa', 'plural_name' => 'Spas']);
+    Place::factory()->for($country)->for($city)->capital()->create();
+    Place::factory()->for($country)->for($city)->create();
+    Place::factory()->for($country)->for($spa)->create();
+
+    $response = $this->get(route('countries.show', $country));
+
+    $response->assertSeeInOrder(['places by type', 'data-icon="city"', 'Cities', 'data-icon="place"', 'Spas'], false);
+    $response->assertSeeInOrder(['data-icon="capital"', 'Capital</h3>', 'data-icon="city"', 'Cities</h3>', 'data-icon="place"', 'Spas</h3>'], false);
 });
 
 it('shows each region both in the Regions list and as a group in the index', function () {
@@ -79,9 +105,26 @@ it('shows each region both in the Regions list and as a group in the index', fun
     $response = $this->get(route('logbook'));
 
     $response->assertSeeInOrder([
-        'id="progress-regions"', 'data-id="'.$region->id.'" data-name="Southeast Asia"', '0 <span class="muted italic">of</span> 0',
+        'id="progress-regions"', 'data-id="'.$region->id.'" data-name="Southeast Asia"', '0 <span class="muted" aria-hidden="true">/</span><span class="sr-only">of</span> 0',
         'id="index-region-groups"', 'data-region-group="'.$region->id.'"', 'southeast asia', '0 countries',
     ], false);
+});
+
+it('shows the country flag in the index and above the country name', function () {
+    $country = Country::factory()->create(['name' => 'Cambodia', 'flag_code' => 'KH']);
+
+    $response = $this->get(route('countries.show', $country));
+
+    $response->assertSee('<span class="flag" aria-hidden="true">'."\u{1F1F0}\u{1F1ED}".'</span>', false);
+    $response->assertSee('<div class="flag flag--large" aria-hidden="true">'."\u{1F1F0}\u{1F1ED}".'</div>', false);
+});
+
+it('shows no flag for a country without a flag code', function () {
+    $country = Country::factory()->create(['flag_code' => null]);
+
+    $response = $this->get(route('countries.show', $country));
+
+    $response->assertDontSee('class="flag', false);
 });
 
 it('labels the country page with its region', function () {

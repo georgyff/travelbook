@@ -7,6 +7,9 @@
     @else
         <header class="country-head">
             <div class="sc muted country-head__region">{{ Str::lower($country->region->name) }}</div>
+            @if ($country->flag_code)
+                <div class="flag flag--large" aria-hidden="true">{{ $country->flagEmoji() }}</div>
+            @endif
             <h1 id="country-name" tabindex="-1">{{ $country->name }}</h1>
             <p class="country-head__desc">{{ $descriptor }}</p>
             <div class="country-head__meta">
@@ -30,12 +33,17 @@
                 <div class="place-columns">
                     @foreach ($placeGroups as $group)
                         <div class="place-group" role="group" aria-labelledby="group-{{ $group['key'] }}">
-                            <h3 id="group-{{ $group['key'] }}">{{ $group['heading'] }}</h3>
-                            @foreach ($group['places'] as $place)
-                                <button type="button" class="place-btn" data-place-toggle="{{ $place->id }}" aria-controls="place-{{ $place->id }}" aria-pressed="{{ $selectedPlace?->is($place) ? 'true' : 'false' }}">
-                                    <span class="marker" data-status="{{ $place->status->value }}" aria-hidden="true"></span>{{ $place->name }}<span class="sr-only">, {{ $place->status->label() }}</span>
-                                </button>
-                            @endforeach
+                            <h3 id="group-{{ $group['key'] }}"><x-place-icon :icon="$group['icon']" />{{ $group['heading'] }}</h3>
+                            <ul class="place-list" data-sort-list data-sort-url="{{ $group['sortUrl'] }}">
+                                @foreach ($group['places'] as $place)
+                                    <li class="place-row" data-sort-item data-id="{{ $place->id }}" data-name="{{ $place->name }}">
+                                        <x-sort-handle :label="'Reorder '.$place->name" />
+                                        <button type="button" class="place-btn" data-place-toggle="{{ $place->id }}" aria-controls="place-{{ $place->id }}" aria-pressed="{{ $selectedPlace?->is($place) ? 'true' : 'false' }}">
+                                            <span class="marker" data-status="{{ $place->status->value }}" aria-hidden="true"></span>{{ $place->name }}<span class="sr-only">, {{ $place->status->label() }}</span>
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endforeach
                 </div>
