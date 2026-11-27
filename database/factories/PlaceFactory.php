@@ -26,6 +26,8 @@ class PlaceFactory extends Factory
             'name' => fake()->unique()->city(),
             'is_capital' => false,
             'status' => CompletionStatus::NotCompleted,
+            'times_visited' => null,
+            'pictures' => null,
             'short_history' => null,
             'facts' => [],
         ];

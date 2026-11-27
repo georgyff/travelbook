@@ -42,7 +42,7 @@
   --text-wordmark: 34px;       /* "The Travel Log" — 600, small-caps */
   --text-world: 76px;          /* world count — 500 */
   --text-country: 84px;        /* country name — 500, letter-spacing -0.015em, line-height 1 */
-  --text-history: 19px;        /* country history paragraph, line-height 1.6, max 66ch */
+  --text-history: 19px;        /* country history paragraph, line-height 1.6, full column width */
 
   /* Spacing & shape */
   --page-max: 1760px;         /* was 1360px: wide screens keep more room for the columns */
@@ -61,4 +61,6 @@
   --text-flag: 44px;          /* flag above the country name */
   --text-subhead: 18px;        /* region names in the index, place group headings */
   --backdrop: rgb(30 27 22 / 0.45); /* --ink at 45%, behind edit dialogs */
+  --text-trip: 64px;           /* trip name on its page — 500, like the country name */
+  --page-narrow: 1200px;       /* the trip page's two ledgers */
 }

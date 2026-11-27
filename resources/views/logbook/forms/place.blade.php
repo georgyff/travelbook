@@ -36,6 +36,15 @@
 
     <x-status-field :selected="$place->status" id-prefix="place-status" />
 
+    <div class="field-row">
+        <x-field label="Times visited" for="place-times-visited" name="times_visited">
+            <input class="input" type="number" id="place-times-visited" name="times_visited" value="{{ $place->times_visited }}" min="0" step="1" inputmode="numeric">
+        </x-field>
+        <x-field label="Pictures" for="place-pictures" name="pictures">
+            <input class="input" type="number" id="place-pictures" name="pictures" value="{{ $place->pictures }}" min="0" step="1" inputmode="numeric">
+        </x-field>
+    </div>
+
     <x-field label="Short history" for="place-history" name="short_history" hint="Line breaks are kept. Write **bold** or *italic* to format words.">
         <textarea class="input input--long" id="place-history" name="short_history" rows="10" aria-describedby="place-history-hint">{{ $place->short_history }}</textarea>
     </x-field>

@@ -1,5 +1,5 @@
 /**
- * Logbook page behaviour. The server renders every view, and this module enhances it:
+ * Logbook and Trips page behaviour. The server renders every view, and this module enhances it:
  *  - country links swap the page content in place (history-aware), place rows toggle their detail;
  *  - region groups in the index collapse, and the index filters as you type;
  *  - the masthead Edit button switches edit mode, and every add/edit control opens its form in one <dialog>;
@@ -74,8 +74,8 @@ async function loadPage(url, { push = false, focusSelector = null } = {}) {
 
     const html = await response.text();
     const nextDocument = new DOMParser().parseFromString(html, 'text/html');
-    const nextMain = nextDocument.getElementById('logbook');
-    const currentMain = document.getElementById('logbook');
+    const nextMain = nextDocument.getElementById('page');
+    const currentMain = document.getElementById('page');
 
     if (!response.ok || !nextMain || !currentMain) {
         window.location.href = url;
@@ -281,7 +281,8 @@ function showErrors(form, errors) {
 
     Object.entries(errors).forEach(([key, messages]) => {
         const [field, index] = key.split('.');
-        const errorLine = form.querySelector(`[data-error-for="${CSS.escape(field)}"]`) ?? form.querySelector('[data-error-for="_form"]');
+        // data-error-for may list several fields (a table editor's columns share one error line).
+        const errorLine = form.querySelector(`[data-error-for~="${CSS.escape(field)}"]`) ?? form.querySelector('[data-error-for="_form"]');
         if (!errorLine) {
             return;
         }
@@ -395,7 +396,7 @@ async function confirmDelete(footer) {
     }
 }
 
-/* ---------- List editors (facts, region countries) ---------- */
+/* ---------- List editors (facts, trip countries and places visited, itinerary) ---------- */
 
 function listItems(editor) {
     return [...editor.querySelector('[data-list-items]').children];
@@ -407,7 +408,10 @@ function relabelList(editor) {
 
     items.forEach((item, index) => {
         const number = index + 1;
-        item.querySelector('[data-list-input]')?.setAttribute('aria-label', `${label} ${number}`);
+        item.querySelectorAll('[data-list-input]').forEach((input) => {
+            const cellLabel = input.dataset.cellLabel;
+            input.setAttribute('aria-label', cellLabel ? `${cellLabel}, ${label.toLowerCase()} ${number}` : `${label} ${number}`);
+        });
         item.querySelector('[data-list-remove]')?.setAttribute('aria-label', `Remove ${label.toLowerCase()} ${number}`);
 
         const up = item.querySelector('[data-list-up]');

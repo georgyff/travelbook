@@ -1,3 +1,4 @@
+@use('App\Services\Figures')
 <article class="col-country" @if ($country) aria-labelledby="country-name" @else aria-label="Country" @endif>
     @if (! $country)
         <p class="empty country-empty">
@@ -59,6 +60,10 @@
             <section class="place-detail" id="place-{{ $place->id }}" aria-labelledby="place-{{ $place->id }}-title" data-place-detail="{{ $place->id }}" @unless ($selectedPlace?->is($place)) hidden @endunless>
                 <div class="place-detail__head">
                     <h2 id="place-{{ $place->id }}-title">{{ $place->name }} <small>{{ $place->is_capital ? 'capital' : Str::lower($place->placeType->name) }}, {{ $place->status->label() }}</small></h2>
+                    <dl class="place-figures">
+                        <div><dt class="sc">times visited</dt><dd><x-figure :value="Figures::number($place->times_visited)" /></dd></div>
+                        <div><dt class="sc">pictures</dt><dd><x-figure :value="Figures::number($place->pictures)" /></dd></div>
+                    </dl>
                     <button type="button" class="btn-outline" data-edit-only data-open-form="{{ route('places.edit', $place) }}">Edit place</button>
                 </div>
                 <div class="place-detail__cols">

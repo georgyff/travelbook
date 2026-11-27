@@ -69,6 +69,17 @@ it('opens the place detail named in the query string', function () {
     $response->assertSee('data-place-detail="'.$other->id.'"  hidden', false);
 });
 
+it('shows times visited and pictures in the place detail, or a dash when not filled in', function () {
+    $country = Country::factory()->create();
+    $visited = Place::factory()->for($country)->create(['times_visited' => 3, 'pictures' => 1240]);
+    Place::factory()->for($country)->create();
+
+    $this->get(route('countries.show', [$country, 'place' => $visited->id]))
+        ->assertOk()
+        ->assertSeeInOrder(['times visited', '3', 'pictures', '1,240'], false)
+        ->assertSee('<span class="sr-only">none</span>', false);
+});
+
 it('shows region, world and place-type totals', function () {
     $city = PlaceType::factory()->create(['name' => 'City', 'plural_name' => 'Cities']);
     $baltics = Region::factory()->create(['name' => 'Baltics']);

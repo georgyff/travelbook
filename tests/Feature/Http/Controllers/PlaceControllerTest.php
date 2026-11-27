@@ -117,6 +117,32 @@ describe('update and destroy', function () {
             ->facts->toBe(['New one', 'New two']);
     });
 
+    it('saves times visited and pictures, and clears them when left empty', function () {
+        $place = Place::factory()->create();
+        $fields = ['name' => $place->name, 'place_type_id' => $place->place_type_id, 'status' => 'completed'];
+
+        $this->putJson(route('places.update', $place), [...$fields, 'times_visited' => '3', 'pictures' => '1240'])->assertOk();
+        expect($place->fresh())->times_visited->toBe(3)->pictures->toBe(1240);
+
+        $this->putJson(route('places.update', $place), [...$fields, 'times_visited' => '', 'pictures' => ''])->assertOk();
+        expect($place->fresh())->times_visited->toBeNull()->pictures->toBeNull();
+    });
+
+    it('rejects times visited and pictures that are not whole numbers of zero or more', function () {
+        $place = Place::factory()->create();
+
+        $this->putJson(route('places.update', $place), [
+            'name' => $place->name,
+            'place_type_id' => $place->place_type_id,
+            'status' => 'completed',
+            'times_visited' => '1.5',
+            'pictures' => '-2',
+        ])->assertJsonValidationErrors([
+            'times_visited' => 'Use a whole number.',
+            'pictures' => 'Use zero or more.',
+        ]);
+    });
+
     it('moves a place given another type to the end of that type, and keeps it in place otherwise', function () {
         $country = Country::factory()->create();
         $city = PlaceType::factory()->create();

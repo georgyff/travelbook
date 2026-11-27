@@ -8,6 +8,8 @@ use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\PlaceOrderController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RegionOrderController;
+use App\Http\Controllers\TripController;
+use App\Http\Controllers\TripItineraryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LogbookController::class, 'index'])->name('logbook');
@@ -24,3 +26,7 @@ Route::put('countries/{country}/history', [CountryHistoryController::class, 'upd
 Route::resource('countries.places', PlaceController::class)->shallow()->except(['index', 'show']);
 Route::put('countries/{country}/place-types/{placeType}/place-order', [PlaceOrderController::class, 'update'])->name('countries.place-order.update');
 Route::put('countries/{country}/capital-order', [PlaceOrderController::class, 'updateCapitals'])->name('countries.capital-order.update');
+
+Route::resource('trips', TripController::class);
+Route::get('trips/{trip}/itinerary/edit', [TripItineraryController::class, 'edit'])->name('trips.itinerary.edit');
+Route::put('trips/{trip}/itinerary', [TripItineraryController::class, 'update'])->name('trips.itinerary.update');

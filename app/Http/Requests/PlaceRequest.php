@@ -43,6 +43,8 @@ class PlaceRequest extends FormRequest
             'place_type_id' => ['required', 'integer', Rule::exists('place_types', 'id')],
             'is_capital' => ['boolean'],
             'status' => ['required', Rule::enum(CompletionStatus::class)],
+            'times_visited' => ['nullable', 'integer', 'min:0', 'max:999999'],
+            'pictures' => ['nullable', 'integer', 'min:0', 'max:999999999'],
             'short_history' => ['nullable', 'string', 'max:10000'],
             'facts' => ['array', 'max:50'],
             'facts.*' => ['string', 'max:1000'],
@@ -59,6 +61,8 @@ class PlaceRequest extends FormRequest
             'place_type_id.required' => 'Choose a type.',
             'status.required' => 'Choose a status.',
             'facts.*.max' => 'Keep each fact under 1000 characters.',
+            '*.integer' => 'Use a whole number.',
+            '*.min' => 'Use zero or more.',
         ];
     }
 }
